@@ -29,6 +29,8 @@ import com.sipedas.app.ui.profile.ProfileScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.sipedas.app.ui.absensi.AbsensiSiswaScreen
+import com.sipedas.app.ui.jurnal.JurnalFormScreen
+import com.sipedas.app.ui.jurnal.JurnalScreen
 
 object Routes {
     const val HOME = "home"
@@ -37,6 +39,7 @@ object Routes {
     const val POIN = "poin"
     const val PROFIL = "profil"
     const val ABSENSI_SISWA = "absensi/siswa/{kelasId}"
+    const val JURNAL_ISI = "jurnal/isi/{jadwalId}"
 }
 
 private val tabs = listOf(
@@ -110,9 +113,21 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
             }
 
             composable(Routes.JURNAL) {
-                PlaceholderScreen(
-                    judul = "Jurnal mengajar",
-                    keterangan = "Di sini Anda akan mengisi jurnal pembelajaran sesuai jam mengajar.",
+                JurnalScreen(
+                    onIsi = { id -> nav.navigate("jurnal/isi/$id") },
+                )
+            }
+
+            composable(
+                route = Routes.JURNAL_ISI,
+                arguments = listOf(navArgument("jadwalId") { type = NavType.IntType }),
+            ) { entry ->
+                val jadwalId = entry.arguments?.getInt("jadwalId") ?: return@composable
+
+                JurnalFormScreen(
+                    jadwalId = jadwalId,
+                    onBack = { nav.popBackStack() },
+                    onSelesai = { nav.popBackStack() },
                 )
             }
 

@@ -13,6 +13,8 @@ import com.sipedas.app.data.api.toUserMessage
 import com.sipedas.app.data.model.JadwalHariIniResponse
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import com.sipedas.app.ui.jurnal.JurnalEvents
+import kotlinx.coroutines.flow.drop
 
 sealed interface HomeState {
     data object Loading : HomeState
@@ -31,6 +33,7 @@ class HomeViewModel(private val api: ApiService) : ViewModel() {
 
     init {
         viewModelScope.launch { ambil() }
+        viewModelScope.launch { JurnalEvents.berubah.drop(1).collect { ambil() } }
     }
 
     fun muatUlang() {

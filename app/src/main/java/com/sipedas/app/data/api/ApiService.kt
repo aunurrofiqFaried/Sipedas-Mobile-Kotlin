@@ -13,6 +13,9 @@ import retrofit2.http.Path
 import com.sipedas.app.data.model.SiswaKelasResponse
 import com.sipedas.app.data.model.SimpanAbsensiRequest
 import com.sipedas.app.data.model.SimpanAbsensiResponse
+import com.sipedas.app.data.model.JurnalPageResponse
+import com.sipedas.app.data.model.SimpanJurnalRequest
+import com.sipedas.app.data.model.SimpanJurnalResponse
 
 interface ApiService {
 
@@ -36,4 +39,10 @@ interface ApiService {
 
     @POST("absensi")
     suspend fun simpanAbsensi(@Body body: SimpanAbsensiRequest): SimpanAbsensiResponse
+
+    @GET("jurnal")
+    suspend fun riwayatJurnal(): JurnalPageResponse
+
+    @POST("jurnal")
+    suspend fun simpanJurnal(@Body body: SimpanJurnalRequest): SimpanJurnalResponse
 }
