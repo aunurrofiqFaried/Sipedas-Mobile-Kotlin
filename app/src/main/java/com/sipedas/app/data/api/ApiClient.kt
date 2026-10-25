@@ -12,6 +12,10 @@ object ApiClient {
     @Volatile
     var token: String? = null
 
+    // Dipanggil saat server menolak token (akun dinonaktifkan atau token dicabut)
+    @Volatile
+    var onUnauthorized: (() -> Unit)? = null
+
     private val okHttp: OkHttpClient by lazy {
         // Level BASIC hanya mencatat alamat dan kode status.
         // Jangan pakai BODY di versi rilis: password dan token akan tercatat di Logcat.
@@ -26,7 +30,21 @@ object ApiClient {
                 token?.let { builder.header("Authorization", "Bearer $it") }
                 chain.proceed(builder.build())
             }
-            .addInterceptor(logging)
+            .addInterceptor { chain ->
+                val request = chain.request()
+                val builder = request.newBuilder().header("Accept", "application/json")
+                token?.let { builder.header("Authorization", "Bearer $it") }
+
+                val response = chain.proceed(builder.build())
+
+                // 401 pada request selain login = sesi tidak berlaku lagi
+                if (response.code == 401 && token != null && !request.url.encodedPath.endsWith("/login")) {
+                    onUnauthorized?.invoke()
+                }
+
+                response
+            }
+//            .addInterceptor(logging)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .build()

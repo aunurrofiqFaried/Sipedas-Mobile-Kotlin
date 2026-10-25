@@ -47,7 +47,7 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
         viewModelScope.launch {
             repo.login(state.username, state.password)
-                .onSuccess { state = state.copy(loading = false) }
+                .onSuccess { state = LoginUiState() }
                 .onFailure { state = state.copy(loading = false, error = it.toUserMessage()) }
         }
     }

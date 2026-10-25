@@ -24,4 +24,10 @@ class AuthRepository(
         ApiClient.token = null
         store.clear()
     }
+
+    // Hapus sesi di HP saja, tanpa memanggil server (dipakai saat server sudah menolak token)
+    suspend fun hapusSesiLokal() {
+        ApiClient.token = null
+        store.clear()
+    }
 }

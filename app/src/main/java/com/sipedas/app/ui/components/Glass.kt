@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.theme.Orange500
+import androidx.compose.ui.unit.Dp
 
 // Latar: putih dengan dua "cahaya" lembut, oranye di kanan atas dan hijau di kiri bawah
 @Composable
@@ -63,6 +64,7 @@ fun AppBackground(
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
+    contentPadding: Dp = 20.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(24.dp)
@@ -82,7 +84,7 @@ fun GlassCard(
                 ),
                 shape = shape,
             )
-            .padding(20.dp),
+            .padding(contentPadding),
         content = content,
     )
 }

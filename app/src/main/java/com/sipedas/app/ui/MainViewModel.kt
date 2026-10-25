@@ -27,6 +27,12 @@ class MainViewModel(
         .onEach { st -> ApiClient.token = (st as? SessionState.LoggedIn)?.session?.token }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SessionState.Loading)
 
+    init {
+        ApiClient.onUnauthorized = {
+            viewModelScope.launch { repo.hapusSesiLokal() }
+        }
+    }
+
     fun logout() {
         viewModelScope.launch { repo.logout() }
     }
