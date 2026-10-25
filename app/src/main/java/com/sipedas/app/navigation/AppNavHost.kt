@@ -31,6 +31,9 @@ import androidx.navigation.navArgument
 import com.sipedas.app.ui.absensi.AbsensiSiswaScreen
 import com.sipedas.app.ui.jurnal.JurnalFormScreen
 import com.sipedas.app.ui.jurnal.JurnalScreen
+import com.sipedas.app.ui.poin.CariSiswaScreen
+import com.sipedas.app.ui.poin.CatatPelanggaranScreen
+import com.sipedas.app.ui.poin.PoinSiswaScreen
 
 object Routes {
     const val HOME = "home"
@@ -40,6 +43,8 @@ object Routes {
     const val PROFIL = "profil"
     const val ABSENSI_SISWA = "absensi/siswa/{kelasId}"
     const val JURNAL_ISI = "jurnal/isi/{jadwalId}"
+    const val POIN_SISWA = "poin/siswa/{siswaId}"
+    const val POIN_CATAT = "poin/catat/{siswaId}"
 }
 
 private val tabs = listOf(
@@ -132,9 +137,34 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
             }
 
             composable(Routes.POIN) {
-                PlaceholderScreen(
-                    judul = "Poin pelanggaran",
-                    keterangan = "Di sini Anda akan mencatat pelanggaran siswa dan melihat total poinnya.",
+                CariSiswaScreen(
+                    onPilih = { id -> nav.navigate("poin/siswa/$id") },
+                )
+            }
+
+            composable(
+                route = Routes.POIN_SISWA,
+                arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+            ) { entry ->
+                val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                PoinSiswaScreen(
+                    siswaId = siswaId,
+                    onBack = { nav.popBackStack() },
+                    onCatat = { nav.navigate("poin/catat/$siswaId") },
+                )
+            }
+
+            composable(
+                route = Routes.POIN_CATAT,
+                arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+            ) { entry ->
+                val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                CatatPelanggaranScreen(
+                    siswaId = siswaId,
+                    onBack = { nav.popBackStack() },
+                    onSelesai = { nav.popBackStack() },
                 )
             }
 

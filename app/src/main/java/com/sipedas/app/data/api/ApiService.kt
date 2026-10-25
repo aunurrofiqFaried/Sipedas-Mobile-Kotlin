@@ -16,6 +16,12 @@ import com.sipedas.app.data.model.SimpanAbsensiResponse
 import com.sipedas.app.data.model.JurnalPageResponse
 import com.sipedas.app.data.model.SimpanJurnalRequest
 import com.sipedas.app.data.model.SimpanJurnalResponse
+import retrofit2.http.Query
+import com.sipedas.app.data.model.JenisPelanggaranResponse
+import com.sipedas.app.data.model.SiswaCariResponse
+import com.sipedas.app.data.model.CatatPelanggaranRequest
+import com.sipedas.app.data.model.CatatPelanggaranResponse
+import com.sipedas.app.data.model.RiwayatPelanggaranResponse
 
 interface ApiService {
 
@@ -45,4 +51,16 @@ interface ApiService {
 
     @POST("jurnal")
     suspend fun simpanJurnal(@Body body: SimpanJurnalRequest): SimpanJurnalResponse
+
+    @GET("pelanggaran/jenis")
+    suspend fun jenisPelanggaran(): JenisPelanggaranResponse
+
+    @GET("siswa/cari")
+    suspend fun cariSiswa(@Query("q") q: String): SiswaCariResponse
+
+    @POST("pelanggaran")
+    suspend fun catatPelanggaran(@Body body: CatatPelanggaranRequest): CatatPelanggaranResponse
+
+    @GET("siswa/{id}/pelanggaran")
+    suspend fun riwayatPelanggaran(@Path("id") id: Int): RiwayatPelanggaranResponse
 }
