@@ -22,6 +22,7 @@ import com.sipedas.app.data.model.SiswaCariResponse
 import com.sipedas.app.data.model.CatatPelanggaranRequest
 import com.sipedas.app.data.model.CatatPelanggaranResponse
 import com.sipedas.app.data.model.RiwayatPelanggaranResponse
+import com.sipedas.app.data.model.UbahPasswordRequest
 
 interface ApiService {
 
@@ -63,4 +64,7 @@ interface ApiService {
 
     @GET("siswa/{id}/pelanggaran")
     suspend fun riwayatPelanggaran(@Path("id") id: Int): RiwayatPelanggaranResponse
+
+    @POST("ubah-password")
+    suspend fun ubahPassword(@Body body: UbahPasswordRequest): MessageResponse
 }

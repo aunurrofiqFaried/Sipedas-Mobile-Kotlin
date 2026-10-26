@@ -8,6 +8,9 @@ import java.io.IOException
 // Mengubah error teknis menjadi kalimat yang bisa dibaca guru
 fun Throwable.toUserMessage(): String = when (this) {
     is HttpException -> {
+        if (code() == 429) {
+            return "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi."
+        }
         val body = response()?.errorBody()?.string()
         val parsed = try {
             Gson().fromJson(body, ApiError::class.java)

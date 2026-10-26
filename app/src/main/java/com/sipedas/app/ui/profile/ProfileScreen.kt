@@ -35,7 +35,7 @@ import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.theme.Orange500
 
 @Composable
-fun ProfileScreen(session: Session, onLogout: () -> Unit) {
+fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(title = "Profil")
 
@@ -106,10 +106,9 @@ fun ProfileScreen(session: Session, onLogout: () -> Unit) {
                 )
                 Spacer(Modifier.height(14.dp))
                 Button(
-                    onClick = { /* layar ubah password dibuat nanti */ },
-                    enabled = false,
+                    onClick = onUbahPassword,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Ubah password (segera hadir)") }
+                ) { Text("Ubah password") }
             }
 
             Spacer(Modifier.height(16.dp))

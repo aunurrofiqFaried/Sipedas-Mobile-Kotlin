@@ -35,3 +35,9 @@ data class ApiError(
     val message: String?,
     val errors: Map<String, List<String>>?,
 )
+
+data class UbahPasswordRequest(
+    @SerializedName("password_lama") val passwordLama: String,
+    @SerializedName("password_baru") val passwordBaru: String,
+    @SerializedName("password_baru_confirmation") val konfirmasi: String,
+)

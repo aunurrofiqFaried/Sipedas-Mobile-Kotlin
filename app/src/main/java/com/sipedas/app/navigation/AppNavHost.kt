@@ -34,6 +34,7 @@ import com.sipedas.app.ui.jurnal.JurnalScreen
 import com.sipedas.app.ui.poin.CariSiswaScreen
 import com.sipedas.app.ui.poin.CatatPelanggaranScreen
 import com.sipedas.app.ui.poin.PoinSiswaScreen
+import com.sipedas.app.ui.profile.UbahPasswordScreen
 
 object Routes {
     const val HOME = "home"
@@ -45,6 +46,7 @@ object Routes {
     const val JURNAL_ISI = "jurnal/isi/{jadwalId}"
     const val POIN_SISWA = "poin/siswa/{siswaId}"
     const val POIN_CATAT = "poin/catat/{siswaId}"
+    const val UBAH_PASSWORD = "profil/password"
 }
 
 private val tabs = listOf(
@@ -169,7 +171,18 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
             }
 
             composable(Routes.PROFIL) {
-                ProfileScreen(session = session, onLogout = onLogout)
+                ProfileScreen(
+                    session = session,
+                    onLogout = onLogout,
+                    onUbahPassword = { nav.navigate(Routes.UBAH_PASSWORD) },
+                )
+            }
+
+            composable(Routes.UBAH_PASSWORD) {
+                UbahPasswordScreen(
+                    onBack = { nav.popBackStack() },
+                    onSelesai = { nav.popBackStack() },
+                )
             }
         }
     }
