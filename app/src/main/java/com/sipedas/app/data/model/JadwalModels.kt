@@ -40,3 +40,26 @@ data class JadwalHariIniResponse(
     val data: List<JadwalDto>,
     val piket: List<PiketDto>? = null,
 )
+
+data class JadwalMingguDto(
+    val id: Int,
+    val hari: Int, // 1 = Senin ... 5 = Jumat
+    val kelas: IdNama?,
+    val mapel: IdNama?,
+    val ruang: RuangDto?,
+    @SerializedName("jam_ke_mulai") val jamKeMulai: Int,
+    @SerializedName("jam_ke_selesai") val jamKeSelesai: Int,
+    @SerializedName("jam_mulai") val jamMulai: String,
+    @SerializedName("jam_selesai") val jamSelesai: String,
+)
+
+data class TahunAjaranDto(
+    val nama: String,
+    @SerializedName("tanggal_mulai") val tanggalMulai: String,
+    @SerializedName("tanggal_selesai") val tanggalSelesai: String,
+)
+
+data class JadwalSayaResponse(
+    @SerializedName("tahun_ajaran") val tahunAjaran: TahunAjaranDto,
+    val data: List<JadwalMingguDto>,
+)

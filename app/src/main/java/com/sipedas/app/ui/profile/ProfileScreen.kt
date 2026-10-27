@@ -33,6 +33,7 @@ import com.sipedas.app.ui.components.GlassCard
 import com.sipedas.app.ui.components.ScreenHeader
 import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.theme.Orange500
+import com.sipedas.app.ui.kalender.KalenderMengajar
 
 @Composable
 fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> Unit) {
@@ -95,6 +96,10 @@ fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> 
             }
 
             Spacer(Modifier.height(24.dp))
+
+            KalenderMengajar(token = session.token)
+
+            Spacer(Modifier.height(16.dp))
 
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("Keamanan akun", style = MaterialTheme.typography.titleMedium)

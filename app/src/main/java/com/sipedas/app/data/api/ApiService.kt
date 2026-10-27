@@ -29,6 +29,7 @@ import com.sipedas.app.data.model.KelasSholatResponse
 import com.sipedas.app.data.model.SiswaSholatResponse
 import com.sipedas.app.data.model.SimpanSholatRequest
 import com.sipedas.app.data.model.SimpanSholatResponse
+import com.sipedas.app.data.model.JadwalSayaResponse
 
 
 interface ApiService {
@@ -89,4 +90,7 @@ interface ApiService {
 
     @POST("sholat")
     suspend fun simpanSholat(@Body body: SimpanSholatRequest): SimpanSholatResponse
+
+    @GET("jadwal/saya")
+    suspend fun jadwalSaya(): JadwalSayaResponse
 }
