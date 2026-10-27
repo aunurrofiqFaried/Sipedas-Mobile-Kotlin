@@ -25,6 +25,11 @@ import com.sipedas.app.data.model.RiwayatPelanggaranResponse
 import com.sipedas.app.data.model.UbahPasswordRequest
 import com.sipedas.app.data.model.KontakWaliResponse
 import com.sipedas.app.data.model.CatatKontakRequest
+import com.sipedas.app.data.model.KelasSholatResponse
+import com.sipedas.app.data.model.SiswaSholatResponse
+import com.sipedas.app.data.model.SimpanSholatRequest
+import com.sipedas.app.data.model.SimpanSholatResponse
+
 
 interface ApiService {
 
@@ -75,4 +80,13 @@ interface ApiService {
 
     @POST("bk/siswa/{id}/kontak-wali")
     suspend fun catatKontakWali(@Path("id") id: Int, @Body body: CatatKontakRequest): MessageResponse
+
+    @GET("sholat/kelas-saya")
+    suspend fun kelasSholat(): KelasSholatResponse
+
+    @GET("sholat/{waktu}/kelas/{id}")
+    suspend fun siswaSholat(@Path("waktu") waktu: String, @Path("id") id: Int): SiswaSholatResponse
+
+    @POST("sholat")
+    suspend fun simpanSholat(@Body body: SimpanSholatRequest): SimpanSholatResponse
 }

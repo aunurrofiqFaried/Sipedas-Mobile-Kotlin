@@ -36,6 +36,8 @@ import com.sipedas.app.ui.components.ScreenHeader
 fun KelasAbsensiScreen(
     onPilihKelas: (id: Int, nama: String) -> Unit,
     viewModel: KelasAbsensiViewModel = viewModel(factory = KelasAbsensiViewModel.Factory),
+    tampilSholat: Boolean,
+    onBukaSholat: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(title = "Absensi hari ini")
@@ -71,6 +73,23 @@ fun KelasAbsensiScreen(
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
+                        if (tampilSholat) {
+                            item {
+                                GlassCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .clickable(onClick = onBukaSholat),
+                                ) {
+                                    Text("Absensi sholat", style = MaterialTheme.typography.titleLarge)
+                                    Text(
+                                        "Dhuhur dan Ashar · khusus wali kelas",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
                         if (kelas.isEmpty()) {
                             item {
                                 Text(

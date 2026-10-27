@@ -41,6 +41,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavBackStackEntry
+import com.sipedas.app.ui.sholat.SholatKelasScreen
+import com.sipedas.app.ui.sholat.SholatSiswaScreen
 
 object Routes {
     const val HOME = "home"
@@ -54,6 +56,8 @@ object Routes {
     const val POIN_CATAT = "poin/catat/{siswaId}"
     const val UBAH_PASSWORD = "profil/password"
     const val POIN_WALI = "poin/wali/{siswaId}"
+    const val SHOLAT = "sholat"
+    const val SHOLAT_SISWA = "sholat/{waktu}/{kelasId}"
 }
 
 private val tabs = listOf(
@@ -135,6 +139,8 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
 
             composable(Routes.ABSENSI) {
                 KelasAbsensiScreen(
+                    tampilSholat = session.isWaliKelas,
+                    onBukaSholat = { nav.navigate(Routes.SHOLAT) },
                     onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
                 )
             }
@@ -228,6 +234,30 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                 UbahPasswordScreen(
                     onBack = { nav.popBackStack() },
                     onSelesai = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.SHOLAT) {
+                SholatKelasScreen(
+                    onBack = { nav.popBackStack() },
+                    onPilih = { kelasId, waktu -> nav.navigate("sholat/$waktu/$kelasId") },
+                )
+            }
+
+            composable(
+                route = Routes.SHOLAT_SISWA,
+                arguments = listOf(
+                    navArgument("waktu") { type = NavType.StringType },
+                    navArgument("kelasId") { type = NavType.IntType },
+                ),
+            ) { entry ->
+                val waktu = entry.arguments?.getString("waktu") ?: return@composable
+                val kelasId = entry.arguments?.getInt("kelasId") ?: return@composable
+
+                SholatSiswaScreen(
+                    waktu = waktu,
+                    kelasId = kelasId,
+                    onBack = { nav.popBackStack() },
                 )
             }
         }
