@@ -162,7 +162,7 @@ private fun JadwalJurnalCard(j: JadwalDto, onIsi: () -> Unit) {
             ) { Text("Isi jurnal") }
 
             else -> Text(
-                "Jurnal bisa diisi pada jam mengajar",
+                "Jurnal hanya bisa diisi pada hari jadwalnya",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -26,8 +26,17 @@ data class JadwalDto(
     @SerializedName("bisa_isi_jurnal") val bisaIsiJurnal: Boolean,
 )
 
+data class PiketDto(
+    @SerializedName("jam_ke_mulai") val jamKeMulai: Int,
+    @SerializedName("jam_ke_selesai") val jamKeSelesai: Int,
+    @SerializedName("jam_mulai") val jamMulai: String,
+    @SerializedName("jam_selesai") val jamSelesai: String,
+    val tugas: String?,
+)
+
 data class JadwalHariIniResponse(
     val tanggal: String,
     @SerializedName("jam_server") val jamServer: String,
     val data: List<JadwalDto>,
+    val piket: List<PiketDto>? = null,
 )

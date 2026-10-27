@@ -50,6 +50,10 @@ import com.sipedas.app.ui.theme.Orange500
 import com.sipedas.app.ui.theme.Orange600
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.foundation.border
+import com.sipedas.app.data.model.PiketDto
+import com.sipedas.app.ui.theme.Green700
+import kotlin.collections.orEmpty
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,6 +98,7 @@ fun HomeScreen(
                 onKeAbsensi = onKeAbsensi,
                 onKeJurnal = onKeJurnal,
                 onKePoin = onKePoin,
+                piket = state.data.piket.orEmpty(),
             )
         }
     }
@@ -107,6 +112,7 @@ private fun HomeContent(
     onKeAbsensi: () -> Unit,
     onKeJurnal: () -> Unit,
     onKePoin: () -> Unit,
+    piket: List<PiketDto>,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -120,6 +126,9 @@ private fun HomeContent(
                 sesi = jadwal.size,
                 jurnalTerisi = jadwal.count { it.sudahJurnal },
             )
+        }
+        if (piket.isNotEmpty()) {
+            item { PiketCard(piket) }
         }
 
         item {
@@ -147,6 +156,43 @@ private fun HomeContent(
     }
 }
 
+@Composable
+private fun PiketCard(piket: List<PiketDto>) {
+    val shape = RoundedCornerShape(20.dp)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Green100)
+            .border(1.dp, Green600.copy(alpha = 0.4f), shape)
+            .padding(16.dp),
+    ) {
+        Text(
+            "Anda piket hari ini",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Green700,
+        )
+
+        piket.forEach { p ->
+            val rentang = if (p.jamKeMulai == p.jamKeSelesai) {
+                "Jam ke-${p.jamKeMulai}"
+            } else {
+                "Jam ke-${p.jamKeMulai}-${p.jamKeSelesai}"
+            }
+
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "$rentang · ${p.jamMulai} - ${p.jamSelesai}",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            if (!p.tugas.isNullOrBlank()) {
+                Text(p.tugas, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
 @Composable
 private fun HeroCard(nama: String, tanggal: String, sesi: Int, jurnalTerisi: Int) {
     val shape = RoundedCornerShape(28.dp)
@@ -292,7 +338,7 @@ private fun JadwalCard(j: JadwalDto, onIsiJurnal: () -> Unit) {
             ) { Text("Isi jurnal") }
 
             else -> Text(
-                "Jurnal bisa diisi pada jam mengajar",
+                "Jurnal hanya bisa diisi pada hari jadwalnya",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

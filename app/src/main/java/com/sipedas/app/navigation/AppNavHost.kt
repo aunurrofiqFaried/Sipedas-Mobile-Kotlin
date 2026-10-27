@@ -35,6 +35,12 @@ import com.sipedas.app.ui.poin.CariSiswaScreen
 import com.sipedas.app.ui.poin.CatatPelanggaranScreen
 import com.sipedas.app.ui.poin.PoinSiswaScreen
 import com.sipedas.app.ui.profile.UbahPasswordScreen
+import com.sipedas.app.ui.poin.KontakWaliScreen
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.unit.IntOffset
+import androidx.navigation.NavBackStackEntry
 
 object Routes {
     const val HOME = "home"
@@ -47,6 +53,7 @@ object Routes {
     const val POIN_SISWA = "poin/siswa/{siswaId}"
     const val POIN_CATAT = "poin/catat/{siswaId}"
     const val UBAH_PASSWORD = "profil/password"
+    const val POIN_WALI = "poin/wali/{siswaId}"
 }
 
 private val tabs = listOf(
@@ -56,6 +63,21 @@ private val tabs = listOf(
     TabItem(Routes.POIN, "Poin", Icons.Filled.Warning),
     TabItem(Routes.PROFIL, "Profil", Icons.Filled.Person),
 )
+
+// Durasi singkat dan tegas supaya terasa seperti geser, bukan melayang
+private val geser = tween<IntOffset>(durationMillis = 230, easing = FastOutSlowInEasing)
+
+// Pindah antar tab: ke tab yang lebih kiri = geser dari kiri. Selain itu = dari kanan.
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.arahTab(): AnimatedContentTransitionScope.SlideDirection {
+    val dari = tabs.indexOfFirst { it.route == initialState.destination.route }
+    val ke = tabs.indexOfFirst { it.route == targetState.destination.route }
+
+    return if (dari >= 0 && ke >= 0 && ke < dari) {
+        AnimatedContentTransitionScope.SlideDirection.Right
+    } else {
+        AnimatedContentTransitionScope.SlideDirection.Left
+    }
+}
 
 // Pindah antar tab tanpa menumpuk layar di riwayat
 private fun NavController.keTab(route: String) {
@@ -71,6 +93,8 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
     val nav = rememberNavController()
     val backStack by nav.currentBackStackEntryAsState()
     val rute = backStack?.destination?.route
+    // Hanya BK, waka kesiswaan, dan admin yang boleh menghubungi wali (server juga menolak role lain)
+    val bolehHubungiWali = session.role in setOf("guru_bk", "kesiswaan", "admin")
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -91,6 +115,14 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
             navController = nav,
             startDestination = Routes.HOME,
             modifier = Modifier.padding(padding),
+            enterTransition = { slideIntoContainer(arahTab(), animationSpec = geser) },
+            exitTransition = { slideOutOfContainer(arahTab(), animationSpec = geser) },
+            popEnterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = geser)
+            },
+            popExitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = geser)
+            },
         ) {
             composable(Routes.HOME) {
                 HomeScreen(
@@ -154,6 +186,20 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     siswaId = siswaId,
                     onBack = { nav.popBackStack() },
                     onCatat = { nav.navigate("poin/catat/$siswaId") },
+                    bolehHubungiWali = bolehHubungiWali,
+                    onHubungiWali = { nav.navigate("poin/wali/$siswaId") },
+                )
+            }
+
+            composable(
+                route = Routes.POIN_WALI,
+                arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+            ) { entry ->
+                val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                KontakWaliScreen(
+                    siswaId = siswaId,
+                    onBack = { nav.popBackStack() },
                 )
             }
 

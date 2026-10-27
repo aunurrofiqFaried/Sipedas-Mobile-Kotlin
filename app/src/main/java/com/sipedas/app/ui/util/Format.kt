@@ -10,3 +10,11 @@ fun formatTanggalPendek(iso: String): String = try {
 } catch (e: Exception) {
     iso.take(10)
 }
+
+// "2026-10-26 13:05:00" -> "26 Okt 2026, 13:05"
+fun formatWaktu(s: String): String = try {
+    val d = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).parse(s)
+    SimpleDateFormat("d MMM yyyy, HH:mm", Locale.forLanguageTag("id-ID")).format(d!!)
+} catch (e: Exception) {
+    s
+}

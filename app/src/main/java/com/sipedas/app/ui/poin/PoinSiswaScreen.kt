@@ -27,12 +27,15 @@ import com.sipedas.app.data.model.RiwayatPelanggaranResponse
 import com.sipedas.app.ui.components.GlassCard
 import com.sipedas.app.ui.components.ScreenHeader
 import com.sipedas.app.ui.util.formatTanggalPendek
+import androidx.compose.material3.OutlinedButton
 
 @Composable
 fun PoinSiswaScreen(
     siswaId: Int,
     onBack: () -> Unit,
     onCatat: () -> Unit,
+    bolehHubungiWali: Boolean,
+    onHubungiWali: () -> Unit,
     viewModel: PoinSiswaViewModel = viewModel(
         key = "poin-siswa-$siswaId",
         factory = PoinSiswaViewModel.factory(siswaId),
@@ -61,13 +64,13 @@ fun PoinSiswaScreen(
                 Button(onClick = viewModel::muat) { Text("Coba lagi") }
             }
 
-            else -> Konten(data, onCatat)
+            else -> Konten(data, onCatat, bolehHubungiWali, onHubungiWali)
         }
     }
 }
 
 @Composable
-private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit) {
+private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit, bolehHubungiWali: Boolean, onHubungiWali: () -> Unit,) {
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -127,7 +130,19 @@ private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit) {
             items(data.riwayat, key = { it.id }) { RiwayatItem(it) }
         }
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (bolehHubungiWali) {
+                OutlinedButton(
+                    onClick = onHubungiWali,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                ) { Text("Hubungi wali", style = MaterialTheme.typography.labelLarge) }
+            }
+
             Button(
                 onClick = onCatat,
                 modifier = Modifier

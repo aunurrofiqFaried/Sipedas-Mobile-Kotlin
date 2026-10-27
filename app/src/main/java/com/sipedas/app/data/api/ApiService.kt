@@ -23,6 +23,8 @@ import com.sipedas.app.data.model.CatatPelanggaranRequest
 import com.sipedas.app.data.model.CatatPelanggaranResponse
 import com.sipedas.app.data.model.RiwayatPelanggaranResponse
 import com.sipedas.app.data.model.UbahPasswordRequest
+import com.sipedas.app.data.model.KontakWaliResponse
+import com.sipedas.app.data.model.CatatKontakRequest
 
 interface ApiService {
 
@@ -67,4 +69,10 @@ interface ApiService {
 
     @POST("ubah-password")
     suspend fun ubahPassword(@Body body: UbahPasswordRequest): MessageResponse
+
+    @GET("bk/siswa/{id}/kontak-wali")
+    suspend fun kontakWali(@Path("id") id: Int): KontakWaliResponse
+
+    @POST("bk/siswa/{id}/kontak-wali")
+    suspend fun catatKontakWali(@Path("id") id: Int, @Body body: CatatKontakRequest): MessageResponse
 }
