@@ -62,4 +62,15 @@ data class TahunAjaranDto(
 data class JadwalSayaResponse(
     @SerializedName("tahun_ajaran") val tahunAjaran: TahunAjaranDto,
     val data: List<JadwalMingguDto>,
+    val piket: List<PiketMingguDto>? = null,
+)
+
+data class PiketMingguDto(
+    val id: Int,
+    val hari: Int, // 1 = Senin ... 5 = Jumat
+    @SerializedName("jam_ke_mulai") val jamKeMulai: Int,
+    @SerializedName("jam_ke_selesai") val jamKeSelesai: Int,
+    @SerializedName("jam_mulai") val jamMulai: String,
+    @SerializedName("jam_selesai") val jamSelesai: String,
+    val tugas: String?,
 )

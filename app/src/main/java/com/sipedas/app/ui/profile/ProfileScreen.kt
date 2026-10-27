@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,14 +29,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sipedas.app.data.local.Session
 import com.sipedas.app.ui.components.GlassCard
 import com.sipedas.app.ui.components.ScreenHeader
+import com.sipedas.app.ui.kalender.KalenderMengajar
 import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.theme.Orange500
-import com.sipedas.app.ui.kalender.KalenderMengajar
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -44,62 +48,72 @@ fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> 
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 20.dp, vertical = 4.dp),
         ) {
-            Spacer(Modifier.height(8.dp))
+            // Kartu profil ringkas: avatar kecil di kiri, identitas di kanan
+            GlassCard(modifier = Modifier.fillMaxWidth(), contentPadding = 14.dp) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(Brush.linearGradient(listOf(Orange500, Green600))),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = inisial(session.name),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
 
-            // Avatar: huruf depan nama dengan gradasi oranye ke hijau
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(Orange500, Green600))),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = inisial(session.name),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 14.dp),
+                    ) {
+                        Text(
+                            session.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            "@${session.username}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                        Spacer(Modifier.height(6.dp))
+
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Lencana(
+                                teks = labelRole(session.role),
+                                latar = MaterialTheme.colorScheme.primaryContainer,
+                                isi = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                            if (session.isWaliKelas) {
+                                Lencana(
+                                    teks = "Wali kelas",
+                                    latar = MaterialTheme.colorScheme.secondaryContainer,
+                                    isi = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(Modifier.height(14.dp))
 
-            Text(
-                session.name,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                "@${session.username}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Lencana(
-                    teks = labelRole(session.role),
-                    latar = MaterialTheme.colorScheme.primaryContainer,
-                    isi = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-                if (session.isWaliKelas) {
-                    Lencana(
-                        teks = "Wali kelas",
-                        latar = MaterialTheme.colorScheme.secondaryContainer,
-                        isi = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
-
             KalenderMengajar(token = session.token)
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
 
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("Keamanan akun", style = MaterialTheme.typography.titleMedium)
@@ -116,7 +130,7 @@ fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> 
                 ) { Text("Ubah password") }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
 
             OutlinedButton(
                 onClick = onLogout,
@@ -135,12 +149,13 @@ fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> 
 private fun Lencana(teks: String, latar: Color, isi: Color) {
     Text(
         text = teks,
-        style = MaterialTheme.typography.labelLarge,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
         color = isi,
         modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(latar)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp),
     )
 }
 
@@ -158,5 +173,6 @@ private fun labelRole(role: String): String = when (role) {
     "guru_bk" -> "Guru BK"
     "kesiswaan" -> "Waka Kesiswaan"
     "kepala_sekolah" -> "Kepala Sekolah"
+    "staf" -> "Staf"
     else -> role
 }

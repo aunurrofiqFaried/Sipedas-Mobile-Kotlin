@@ -15,6 +15,7 @@ import com.sipedas.app.data.model.JadwalSayaResponse
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import com.sipedas.app.data.model.PiketMingguDto
 
 enum class ModeKalender { TANGGAL, MINGGU }
 
@@ -101,6 +102,17 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
         if (tanggal < s.mulai || tanggal > s.selesai) return emptyList()
 
         return s.data.data
+            .filter { it.hari == tanggal.dayOfWeek.value }
+            .sortedBy { it.jamKeMulai }
+    }
+
+    // Piket pada tanggal tertentu: diturunkan dari pola piket mingguan
+    fun piketPada(tanggal: LocalDate): List<PiketMingguDto> {
+        val s = state as? KalenderUiState.Success ?: return emptyList()
+
+        if (tanggal < s.mulai || tanggal > s.selesai) return emptyList()
+
+        return s.data.piket.orEmpty()
             .filter { it.hari == tanggal.dayOfWeek.value }
             .sortedBy { it.jamKeMulai }
     }

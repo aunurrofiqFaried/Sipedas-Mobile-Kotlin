@@ -40,6 +40,9 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.foundation.layout.width
+import com.sipedas.app.data.model.PiketMingguDto
+import com.sipedas.app.ui.theme.Orange600
 
 private val localeId: Locale = Locale.forLanguageTag("id-ID")
 private val formatBulan = DateTimeFormatter.ofPattern("MMMM yyyy", localeId)
@@ -147,6 +150,7 @@ private fun IsiKalender(viewModel: KalenderViewModel, state: KalenderUiState.Suc
                     SelTanggal(
                         tanggal = tanggal,
                         jumlahSesi = sesi.size,
+                        jumlahPiket = viewModel.piketPada(tanggal).size,
                         dipilih = tanggal == viewModel.tanggalDipilih,
                         hariIni = tanggal == hariIni,
                         aktif = dalamTahunAjaran && hariKerja,
@@ -184,6 +188,7 @@ private fun IsiKalender(viewModel: KalenderViewModel, state: KalenderUiState.Suc
 private fun SelTanggal(
     tanggal: LocalDate,
     jumlahSesi: Int,
+    jumlahPiket: Int,
     dipilih: Boolean,
     hariIni: Boolean,
     aktif: Boolean,
@@ -191,6 +196,10 @@ private fun SelTanggal(
     modifier: Modifier = Modifier,
 ) {
     val primer = MaterialTheme.colorScheme.primary
+
+    // Paling banyak 5 titik; kalau ada piket, satu titik oranye selalu disisakan
+    val sesiTampil = if (jumlahPiket > 0) jumlahSesi.coerceAtMost(4) else jumlahSesi.coerceAtMost(5)
+    val piketTampil = jumlahPiket.coerceAtMost(5 - sesiTampil)
 
     Column(
         modifier = modifier
@@ -221,17 +230,24 @@ private fun SelTanggal(
 
         Spacer(Modifier.height(2.dp))
 
-        // Satu titik hijau per sesi mengajar (paling banyak 5 titik)
         Row(
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier.height(6.dp),
         ) {
-            repeat(jumlahSesi.coerceAtMost(5)) {
+            repeat(sesiTampil) {
                 Box(
                     modifier = Modifier
                         .size(5.dp)
                         .clip(CircleShape)
                         .background(Green600),
+                )
+            }
+            repeat(piketTampil) {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .clip(CircleShape)
+                        .background(Orange600),
                 )
             }
         }
@@ -265,6 +281,7 @@ private fun ChipMode(label: String, dipilih: Boolean, modifier: Modifier, onClic
 private fun DetailTanggal(viewModel: KalenderViewModel) {
     val tanggal = viewModel.tanggalDipilih ?: return
     val sesi = viewModel.sesiPada(tanggal)
+    val piket = viewModel.piketPada(tanggal)
 
     Text(
         tanggal.format(formatHariLengkap),
@@ -273,15 +290,16 @@ private fun DetailTanggal(viewModel: KalenderViewModel) {
     )
     Spacer(Modifier.height(8.dp))
 
-    if (sesi.isEmpty()) {
+    if (sesi.isEmpty() && piket.isEmpty()) {
         Text(
-            "Tidak ada sesi mengajar pada tanggal ini.",
+            "Tidak ada sesi mengajar maupun piket pada tanggal ini.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             sesi.forEach { SesiBaris(it) }
+            piket.forEach { PiketBaris(it) }
         }
     }
 }
@@ -293,7 +311,9 @@ private fun DetailMinggu(viewModel: KalenderViewModel, bulan: YearMonth) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         minggu.forEachIndexed { index, hari ->
             val rentang = "${hari.first().format(formatTanggalPendek)} - ${hari.last().format(formatTanggalPendek)}"
-            val hariBersesi = hari.filter { viewModel.sesiPada(it).isNotEmpty() }
+            val hariAktif = hari.filter {
+                viewModel.sesiPada(it).isNotEmpty() || viewModel.piketPada(it).isNotEmpty()
+            }
 
             Column(
                 modifier = Modifier
@@ -309,16 +329,16 @@ private fun DetailMinggu(viewModel: KalenderViewModel, bulan: YearMonth) {
                     color = MaterialTheme.colorScheme.primary,
                 )
 
-                if (hariBersesi.isEmpty()) {
+                if (hariAktif.isEmpty()) {
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "Tidak ada sesi mengajar.",
+                        "Tidak ada sesi mengajar maupun piket.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
-                hariBersesi.forEach { tanggal ->
+                hariAktif.forEach { tanggal ->
                     Spacer(Modifier.height(10.dp))
                     Text(
                         tanggal.format(formatHariPendek),
@@ -328,10 +348,74 @@ private fun DetailMinggu(viewModel: KalenderViewModel, bulan: YearMonth) {
                     Spacer(Modifier.height(6.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         viewModel.sesiPada(tanggal).forEach { SesiBaris(it) }
+                        viewModel.piketPada(tanggal).forEach { PiketBaris(it) }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PiketBaris(p: PiketMingguDto) {
+    val rentang = if (p.jamKeMulai == p.jamKeSelesai) "${p.jamKeMulai}" else "${p.jamKeMulai}-${p.jamKeSelesai}"
+
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(width = 4.dp, height = 44.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Orange600),
+        )
+
+        Column(modifier = Modifier.padding(start = 10.dp)) {
+            Text(
+                "Jam ke-$rentang · ${p.jamMulai} - ${p.jamSelesai}",
+                style = MaterialTheme.typography.labelLarge,
+                color = Orange600,
+            )
+            Text("Piket", style = MaterialTheme.typography.titleSmall)
+            if (!p.tugas.isNullOrBlank()) {
+                Text(
+                    p.tugas,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun Legenda() {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+    ) {
+        TitikKeterangan(Green600, "Mengajar")
+        TitikKeterangan(Orange600, "Piket")
+    }
+}
+
+@Composable
+private fun TitikKeterangan(warna: Color, teks: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(warna),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            teks,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
