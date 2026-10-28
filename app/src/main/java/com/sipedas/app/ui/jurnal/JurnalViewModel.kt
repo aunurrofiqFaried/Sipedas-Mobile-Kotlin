@@ -16,6 +16,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.AppEvents
 
 data class JurnalUiState(
     val loading: Boolean = true,
@@ -36,6 +37,7 @@ class JurnalViewModel(private val api: ApiService) : ViewModel() {
     init {
         viewModelScope.launch { ambil() }
         viewModelScope.launch { JurnalEvents.berubah.drop(1).collect { ambil() } }
+        viewModelScope.launch { AppEvents.perluSegar.collect { ambil() } }
     }
 
     fun muatUlang() {

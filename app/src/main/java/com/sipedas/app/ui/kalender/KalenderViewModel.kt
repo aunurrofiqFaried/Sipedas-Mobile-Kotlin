@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import com.sipedas.app.data.model.PiketMingguDto
+import com.sipedas.app.ui.AppEvents
 
 enum class ModeKalender { TANGGAL, MINGGU }
 
@@ -45,6 +46,16 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
 
     init {
         muat()
+        // Hari berganti: pindah ke tanggal hari ini (kalau masih di dalam tahun ajaran)
+        viewModelScope.launch {
+            AppEvents.tanggalBerganti.collect { hariIni ->
+                val s = state as? KalenderUiState.Success ?: return@collect
+
+                if (hariIni >= s.mulai && hariIni <= s.selesai) {
+                    aturBulan(YearMonth.from(hariIni))
+                }
+            }
+        }
     }
 
     fun muat() {

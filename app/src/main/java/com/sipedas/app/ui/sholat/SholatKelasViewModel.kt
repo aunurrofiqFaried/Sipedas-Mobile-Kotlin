@@ -14,6 +14,7 @@ import com.sipedas.app.data.model.KelasSholatResponse
 import com.sipedas.app.ui.absensi.AbsensiEvents
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.AppEvents
 
 sealed interface SholatKelasUiState {
     data object Loading : SholatKelasUiState
@@ -31,6 +32,7 @@ class SholatKelasViewModel(private val api: ApiService) : ViewModel() {
 
     init {
         viewModelScope.launch { ambil() }
+        viewModelScope.launch { AppEvents.perluSegar.collect { ambil() } }
 
         // Segar otomatis setelah sholat disimpan, atau absensi harian disimpan
         // (absensi harian yang baru membuka kunci tombol sholat)

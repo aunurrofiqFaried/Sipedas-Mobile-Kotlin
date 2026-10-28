@@ -13,6 +13,7 @@ import com.sipedas.app.data.api.toUserMessage
 import com.sipedas.app.data.model.KelasHariIniResponse
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.drop
+import com.sipedas.app.ui.AppEvents
 
 sealed interface KelasUiState {
     data object Loading : KelasUiState
@@ -35,6 +36,7 @@ class KelasAbsensiViewModel(private val api: ApiService) : ViewModel() {
         viewModelScope.launch {
             AbsensiEvents.berubah.drop(1).collect { ambil() }
         }
+        viewModelScope.launch { AppEvents.perluSegar.collect { ambil() } }
     }
 
     fun muatUlang() {
