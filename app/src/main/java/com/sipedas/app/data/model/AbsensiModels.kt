@@ -7,6 +7,7 @@ data class KelasAbsenDto(
     val nama: String,
     @SerializedName("jumlah_siswa") val jumlahSiswa: Int,
     @SerializedName("sudah_diabsen") val sudahDiabsen: Int,
+    val alasan: String? = null,
 )
 
 data class KelasHariIniResponse(
