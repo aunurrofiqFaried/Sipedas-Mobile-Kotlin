@@ -50,6 +50,7 @@ import com.sipedas.app.ui.sholat.SholatSiswaScreen
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import com.sipedas.app.ui.absensi.KelasBantuScreen
+import com.sipedas.app.ui.absensi.RekapAbsensiScreen
 
 object Routes {
     // Satu tujuan navigasi yang berisi kelima tab (digeser dengan pager)
@@ -72,6 +73,7 @@ object Routes {
     const val SHOLAT = "sholat"
     const val SHOLAT_SISWA = "sholat/{waktu}/{kelasId}"
     const val ABSENSI_BANTU = "absensi/bantu"
+    const val ABSENSI_REKAP = "absensi/rekap"
 }
 
 private val tabs = listOf(
@@ -172,6 +174,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                             tampilSholat = session.isWaliKelas,
                             onBukaSholat = { nav.navigate(Routes.SHOLAT) },
                             onBukaBantu = { nav.navigate(Routes.ABSENSI_BANTU) },
+                            onBukaRekap = { nav.navigate(Routes.ABSENSI_REKAP) },
                             onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
                         )
 
@@ -292,6 +295,9 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     onBack = { nav.popBackStack() },
                     onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
                 )
+            }
+            composable(Routes.ABSENSI_REKAP) {
+                RekapAbsensiScreen(onBack = { nav.popBackStack() })
             }
         }
     }

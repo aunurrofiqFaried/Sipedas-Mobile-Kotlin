@@ -40,6 +40,7 @@ fun KelasAbsensiScreen(
     tampilSholat: Boolean,
     onBukaSholat: () -> Unit,
     onBukaBantu: () -> Unit,
+    onBukaRekap: () -> Unit,
     onPilihKelas: (id: Int, nama: String) -> Unit,
     viewModel: KelasAbsensiViewModel = viewModel(factory = KelasAbsensiViewModel.Factory),
 ) {
@@ -124,6 +125,21 @@ fun KelasAbsensiScreen(
                         if (lainnya.isNotEmpty()) {
                             item(key = "bantu") {
                                 BantuCard(lainnya, onClick = onBukaBantu)
+                            }
+                        }
+                        item(key = "rekap") {
+                            GlassCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .clickable(onClick = onBukaRekap),
+                            ) {
+                                Text("Rekap kehadiran kelas", style = MaterialTheme.typography.titleLarge)
+                                Text(
+                                    "Pilih kelas untuk melihat jumlah sakit, izin, dan alpa tiap siswa",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }

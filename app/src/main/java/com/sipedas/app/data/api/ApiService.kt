@@ -30,6 +30,8 @@ import com.sipedas.app.data.model.SiswaSholatResponse
 import com.sipedas.app.data.model.SimpanSholatRequest
 import com.sipedas.app.data.model.SimpanSholatResponse
 import com.sipedas.app.data.model.JadwalSayaResponse
+import com.sipedas.app.data.model.KelasRekapResponse
+import com.sipedas.app.data.model.RekapAbsensiResponse
 
 
 interface ApiService {
@@ -93,4 +95,13 @@ interface ApiService {
 
     @GET("jadwal/saya")
     suspend fun jadwalSaya(): JadwalSayaResponse
+
+    @GET("rekap/kelas")
+    suspend fun kelasRekap(): KelasRekapResponse
+
+    @GET("rekap/absensi")
+    suspend fun rekapAbsensi(
+        @Query("kelas_id") kelasId: Int,
+        @Query("bulan") bulan: String,
+    ): RekapAbsensiResponse
 }
