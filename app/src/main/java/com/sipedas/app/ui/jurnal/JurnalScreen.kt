@@ -93,21 +93,10 @@ fun JurnalScreen(
                         JadwalJurnalCard(j, onIsi = { onIsi(j.id) })
                     }
 
-                    item {
+                    item(key = "kalender") {
                         Spacer(Modifier.height(8.dp))
-                        Text("Riwayat jurnal", style = MaterialTheme.typography.titleMedium)
+                        KalenderJurnal()
                     }
-
-                    if (s.riwayat.isEmpty()) {
-                        item {
-                            Text(
-                                "Belum ada jurnal yang tersimpan.",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    items(s.riwayat, key = { "riwayat-${it.id}" }) { RiwayatCard(it) }
                 }
             }
         }

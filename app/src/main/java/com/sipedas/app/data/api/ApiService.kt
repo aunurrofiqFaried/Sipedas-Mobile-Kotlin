@@ -32,6 +32,7 @@ import com.sipedas.app.data.model.SimpanSholatResponse
 import com.sipedas.app.data.model.JadwalSayaResponse
 import com.sipedas.app.data.model.KelasRekapResponse
 import com.sipedas.app.data.model.RekapAbsensiResponse
+import com.sipedas.app.data.model.JurnalBulanResponse
 
 
 interface ApiService {
@@ -62,6 +63,9 @@ interface ApiService {
 
     @POST("jurnal")
     suspend fun simpanJurnal(@Body body: SimpanJurnalRequest): SimpanJurnalResponse
+
+    @GET("jurnal/bulan")
+    suspend fun jurnalBulan(@Query("bulan") bulan: String): JurnalBulanResponse
 
     @GET("pelanggaran/jenis")
     suspend fun jenisPelanggaran(): JenisPelanggaranResponse
