@@ -20,8 +20,11 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import com.sipedas.app.ui.kalender.Acara
 
 class JurnalKalenderViewModel(private val api: ApiService) : ViewModel() {
+    var acara by mutableStateOf<List<Acara>>(emptyList())
+        private set
 
     var loading by mutableStateOf(true)
         private set
@@ -68,6 +71,9 @@ class JurnalKalenderViewModel(private val api: ApiService) : ViewModel() {
                 .onSuccess { res ->
                     jadwal = res
                     mulai = LocalDate.parse(res.tahunAjaran.tanggalMulai)
+                    acara = runCatching { api.kalenderAkademik().data }
+                        .getOrDefault(emptyList())
+                        .map { Acara(it, LocalDate.parse(it.tanggalMulai), LocalDate.parse(it.tanggalSelesai)) }
 
                     // Mulai dari bulan ini; kalau tahun ajaran belum mulai, dari bulan awalnya
                     aturBulan(YearMonth.now().coerceAtLeast(YearMonth.from(mulai)))
@@ -131,7 +137,10 @@ class JurnalKalenderViewModel(private val api: ApiService) : ViewModel() {
             .sortedBy { it.jamKeMulai ?: 99 }
 
     // Sesi mengajar di tanggal yang sudah lewat tapi jurnalnya tidak ada
+    fun liburPada(tanggal: LocalDate): Acara? =
+        acara.firstOrNull { it.dto.jenis == "libur" && tanggal >= it.mulai && tanggal <= it.selesai }
     fun terlewatPada(tanggal: LocalDate): List<JadwalMingguDto> {
+        if (liburPada(tanggal) != null) return emptyList()
         val pola = jadwal ?: return emptyList()
         val awal = mulai ?: return emptyList()
         val akhir = LocalDate.parse(pola.tahunAjaran.tanggalSelesai)

@@ -40,6 +40,7 @@ import com.sipedas.app.ui.theme.Green600
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.sipedas.app.ui.components.BannerLibur
 
 private val warnaTerlewat = Color(0xFFDC2626)
 
@@ -53,8 +54,8 @@ fun KalenderJurnal(
     viewModel: JurnalKalenderViewModel = viewModel(factory = JurnalKalenderViewModel.Factory),
 ) {
     GlassCard(modifier = Modifier.fillMaxWidth()) {
-        Text("Riwayat jurnal", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
+//        Text("Riwayat jurnal", style = MaterialTheme.typography.titleMedium)
+//        Spacer(Modifier.height(8.dp))
 
         when {
             viewModel.loading -> Box(
@@ -134,6 +135,7 @@ private fun Isi(viewModel: JurnalKalenderViewModel) {
                         akhirPekan = tanggal.dayOfWeek.value > 5,
                         onClick = { viewModel.pilihTanggal(tanggal) },
                         modifier = Modifier.weight(1f),
+                        libur = viewModel.liburPada(tanggal) != null,
                     )
                 } else {
                     Spacer(Modifier.weight(1f))
@@ -185,6 +187,7 @@ private fun SelJurnal(
     akhirPekan: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    libur: Boolean,
 ) {
     val primer = MaterialTheme.colorScheme.primary
 
@@ -213,6 +216,7 @@ private fun SelJurnal(
                 fontWeight = if (dipilih || hariIni) FontWeight.SemiBold else FontWeight.Normal,
                 color = when {
                     dipilih -> MaterialTheme.colorScheme.onPrimary
+                    libur -> Color(0xFFDC2626)
                     akhirPekan -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     else -> MaterialTheme.colorScheme.onSurface
                 },
@@ -244,6 +248,11 @@ private fun Detail(viewModel: JurnalKalenderViewModel) {
         fontWeight = FontWeight.Bold,
     )
     Spacer(Modifier.height(8.dp))
+
+    viewModel.liburPada(tanggal)?.let {
+        BannerLibur(it.dto.judul, it.dto.keterangan)
+        Spacer(Modifier.height(8.dp))
+    }
 
     if (jurnal.isEmpty() && terlewat.isEmpty()) {
         Text(

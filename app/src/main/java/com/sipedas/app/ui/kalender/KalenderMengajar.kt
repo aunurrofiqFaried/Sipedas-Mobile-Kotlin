@@ -43,6 +43,8 @@ import java.util.Locale
 import androidx.compose.foundation.layout.width
 import com.sipedas.app.data.model.PiketMingguDto
 import com.sipedas.app.ui.theme.Orange600
+import com.sipedas.app.ui.components.BannerLibur
+import com.sipedas.app.ui.components.BannerPeringatan
 
 private val localeId: Locale = Locale.forLanguageTag("id-ID")
 private val formatBulan = DateTimeFormatter.ofPattern("MMMM yyyy", localeId)
@@ -156,6 +158,8 @@ private fun IsiKalender(viewModel: KalenderViewModel, state: KalenderUiState.Suc
                         aktif = dalamTahunAjaran && hariKerja,
                         onClick = { viewModel.pilihTanggal(tanggal) },
                         modifier = Modifier.weight(1f),
+                        libur = viewModel.liburPada(tanggal) != null,
+                        peringatan = viewModel.peringatanPada(tanggal).isNotEmpty(),
                     )
                 } else {
                     Spacer(Modifier.weight(1f))
@@ -189,6 +193,8 @@ private fun SelTanggal(
     tanggal: LocalDate,
     jumlahSesi: Int,
     jumlahPiket: Int,
+    libur: Boolean,
+    peringatan: Boolean,
     dipilih: Boolean,
     hariIni: Boolean,
     aktif: Boolean,
@@ -197,9 +203,10 @@ private fun SelTanggal(
 ) {
     val primer = MaterialTheme.colorScheme.primary
 
-    // Paling banyak 5 titik; kalau ada piket, satu titik oranye selalu disisakan
-    val sesiTampil = if (jumlahPiket > 0) jumlahSesi.coerceAtMost(4) else jumlahSesi.coerceAtMost(5)
-    val piketTampil = jumlahPiket.coerceAtMost(5 - sesiTampil)
+    // Paling banyak 5 titik: satu disisakan untuk piket, satu untuk peringatan kalau ada
+    val sisa = 5 - (if (peringatan) 1 else 0)
+    val sesiTampil = if (jumlahPiket > 0) jumlahSesi.coerceAtMost(sisa - 1) else jumlahSesi.coerceAtMost(sisa)
+    val piketTampil = jumlahPiket.coerceAtMost(sisa - sesiTampil)
 
     Column(
         modifier = modifier
@@ -219,9 +226,10 @@ private fun SelTanggal(
             Text(
                 text = "${tanggal.dayOfMonth}",
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (dipilih || hariIni) FontWeight.SemiBold else FontWeight.Normal,
+                fontWeight = if (dipilih || hariIni || libur) FontWeight.SemiBold else FontWeight.Normal,
                 color = when {
                     dipilih -> MaterialTheme.colorScheme.onPrimary
+                    libur -> Color(0xFFDC2626)
                     !aktif -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     else -> MaterialTheme.colorScheme.onSurface
                 },
@@ -230,25 +238,15 @@ private fun SelTanggal(
 
         Spacer(Modifier.height(2.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.height(6.dp),
-        ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.height(6.dp)) {
             repeat(sesiTampil) {
-                Box(
-                    modifier = Modifier
-                        .size(5.dp)
-                        .clip(CircleShape)
-                        .background(Green600),
-                )
+                Box(Modifier.size(5.dp).clip(CircleShape).background(Green600))
             }
             repeat(piketTampil) {
-                Box(
-                    modifier = Modifier
-                        .size(5.dp)
-                        .clip(CircleShape)
-                        .background(Orange600),
-                )
+                Box(Modifier.size(5.dp).clip(CircleShape).background(Orange600))
+            }
+            if (peringatan) {
+                Box(Modifier.size(5.dp).clip(CircleShape).background(Color(0xFF0284C7)))
             }
         }
     }
@@ -282,6 +280,7 @@ private fun DetailTanggal(viewModel: KalenderViewModel) {
     val tanggal = viewModel.tanggalDipilih ?: return
     val sesi = viewModel.sesiPada(tanggal)
     val piket = viewModel.piketPada(tanggal)
+    val adaAcara = viewModel.acaraPada(tanggal).isNotEmpty()
 
     Text(
         tanggal.format(formatHariLengkap),
@@ -290,12 +289,18 @@ private fun DetailTanggal(viewModel: KalenderViewModel) {
     )
     Spacer(Modifier.height(8.dp))
 
+    AcaraBaris(viewModel, tanggal)
+
+    if (adaAcara) Spacer(Modifier.height(10.dp))
+
     if (sesi.isEmpty() && piket.isEmpty()) {
-        Text(
-            "Tidak ada sesi mengajar maupun piket pada tanggal ini.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (viewModel.liburPada(tanggal) == null) {
+            Text(
+                "Tidak ada sesi mengajar maupun piket pada tanggal ini.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             sesi.forEach { SesiBaris(it) }
@@ -312,7 +317,9 @@ private fun DetailMinggu(viewModel: KalenderViewModel, bulan: YearMonth) {
         minggu.forEachIndexed { index, hari ->
             val rentang = "${hari.first().format(formatTanggalPendek)} - ${hari.last().format(formatTanggalPendek)}"
             val hariAktif = hari.filter {
-                viewModel.sesiPada(it).isNotEmpty() || viewModel.piketPada(it).isNotEmpty()
+                viewModel.sesiPada(it).isNotEmpty() ||
+                        viewModel.piketPada(it).isNotEmpty() ||
+                        viewModel.acaraPada(it).isNotEmpty()
             }
 
             Column(
@@ -345,6 +352,8 @@ private fun DetailMinggu(viewModel: KalenderViewModel, bulan: YearMonth) {
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
+                    Spacer(Modifier.height(6.dp))
+                    AcaraBaris(viewModel, tanggal)
                     Spacer(Modifier.height(6.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         viewModel.sesiPada(tanggal).forEach { SesiBaris(it) }
@@ -398,6 +407,8 @@ private fun Legenda() {
     ) {
         TitikKeterangan(Green600, "Mengajar")
         TitikKeterangan(Orange600, "Piket")
+        TitikKeterangan(Color(0xFFDC2626), "Libur")
+        TitikKeterangan(Color(0xFF0284C7), "Peringatan")
     }
 }
 
@@ -450,6 +461,16 @@ private fun SesiBaris(j: JadwalMingguDto) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AcaraBaris(viewModel: KalenderViewModel, tanggal: LocalDate) {
+    viewModel.liburPada(tanggal)?.let { BannerLibur(it.dto.judul, it.dto.keterangan) }
+
+    viewModel.peringatanPada(tanggal).forEach {
+        Spacer(Modifier.height(8.dp))
+        BannerPeringatan(it.dto.judul, it.dto.keterangan)
     }
 }
 

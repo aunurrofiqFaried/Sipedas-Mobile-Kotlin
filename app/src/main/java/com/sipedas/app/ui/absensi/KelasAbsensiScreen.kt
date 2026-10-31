@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sipedas.app.data.model.KelasAbsenDto
 import com.sipedas.app.ui.components.GlassCard
 import com.sipedas.app.ui.components.ScreenHeader
+import com.sipedas.app.ui.components.BannerLibur
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +83,9 @@ fun KelasAbsensiScreen(
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
+                        state.data.libur?.let { libur ->
+                            item(key = "libur") { BannerLibur(libur.judul, libur.keterangan) }
+                        }
                         if (tampilSholat) {
                             item(key = "sholat") {
                                 GlassCard(
@@ -123,9 +127,16 @@ fun KelasAbsensiScreen(
                         }
 
                         if (lainnya.isNotEmpty()) {
+                            item {
+                                Text("Opsional", style = MaterialTheme.typography.titleMedium)
+                            }
                             item(key = "bantu") {
                                 BantuCard(lainnya, onClick = onBukaBantu)
                             }
+                        }
+
+                        item {
+                            Text("Rekap Absensi Kelas", style = MaterialTheme.typography.titleMedium)
                         }
                         item(key = "rekap") {
                             GlassCard(
@@ -134,10 +145,10 @@ fun KelasAbsensiScreen(
                                     .clip(RoundedCornerShape(24.dp))
                                     .clickable(onClick = onBukaRekap),
                             ) {
-                                Text("Rekap kehadiran kelas", style = MaterialTheme.typography.titleLarge)
+                                Text("Rekap kehadiran kelas", style = MaterialTheme.typography.titleMedium)
                                 Text(
                                     "Pilih kelas untuk melihat jumlah sakit, izin, dan alpa tiap siswa",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }

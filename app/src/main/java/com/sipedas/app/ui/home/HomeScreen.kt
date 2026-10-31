@@ -54,6 +54,10 @@ import androidx.compose.foundation.border
 import com.sipedas.app.data.model.PiketDto
 import com.sipedas.app.ui.theme.Green700
 import kotlin.collections.orEmpty
+import com.sipedas.app.data.model.LiburDto
+import com.sipedas.app.data.model.PeringatanDto
+import com.sipedas.app.ui.components.BannerLibur
+import com.sipedas.app.ui.components.BannerPeringatan
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,6 +103,8 @@ fun HomeScreen(
                 onKeJurnal = onKeJurnal,
                 onKePoin = onKePoin,
                 piket = state.data.piket.orEmpty(),
+                libur = state.data.libur,
+                peringatan = state.data.peringatan.orEmpty(),
             )
         }
     }
@@ -113,6 +119,8 @@ private fun HomeContent(
     onKeJurnal: () -> Unit,
     onKePoin: () -> Unit,
     piket: List<PiketDto>,
+    libur: LiburDto?,
+    peringatan: List<PeringatanDto>,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -129,6 +137,13 @@ private fun HomeContent(
         }
         if (piket.isNotEmpty()) {
             item { PiketCard(piket) }
+        }
+        if (libur != null) {
+            item { BannerLibur(libur.judul, libur.keterangan) }
+        }
+
+        peringatan.forEach { p ->
+            item { BannerPeringatan(p.judul, p.keterangan) }
         }
 
         item {

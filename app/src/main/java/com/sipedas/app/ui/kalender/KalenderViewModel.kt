@@ -17,6 +17,9 @@ import java.time.LocalDate
 import java.time.YearMonth
 import com.sipedas.app.data.model.PiketMingguDto
 import com.sipedas.app.ui.AppEvents
+import kotlinx.coroutines.coroutineScope
+import com.sipedas.app.data.model.AcaraDto
+import kotlinx.coroutines.async
 
 enum class ModeKalender { TANGGAL, MINGGU }
 
@@ -30,7 +33,15 @@ sealed interface KalenderUiState {
     ) : KalenderUiState
 }
 
+data class Acara(
+    val dto: AcaraDto,
+    val mulai: LocalDate,
+    val selesai: LocalDate,
+)
 class KalenderViewModel(private val api: ApiService) : ViewModel() {
+
+    var acara by mutableStateOf<List<Acara>>(emptyList())
+        private set
 
     var state by mutableStateOf<KalenderUiState>(KalenderUiState.Loading)
         private set
@@ -62,14 +73,23 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
         viewModelScope.launch {
             state = KalenderUiState.Loading
 
-            runCatching { api.jadwalSaya() }
-                .onSuccess { res ->
+            runCatching {
+                coroutineScope {
+                    val jadwal = async { api.jadwalSaya() }
+                    // Kegagalan memuat kalender akademik tidak boleh menggagalkan seluruh kalender
+                    val kalender = async { runCatching { api.kalenderAkademik().data }.getOrDefault(emptyList()) }
+                    jadwal.await() to kalender.await()
+                }
+            }
+                .onSuccess { (res, daftarAcara) ->
                     val mulai = LocalDate.parse(res.tahunAjaran.tanggalMulai)
                     val selesai = LocalDate.parse(res.tahunAjaran.tanggalSelesai)
 
-                    state = KalenderUiState.Success(res, mulai, selesai)
+                    acara = daftarAcara.map {
+                        Acara(it, LocalDate.parse(it.tanggalMulai), LocalDate.parse(it.tanggalSelesai))
+                    }
 
-                    // Bulan awal = bulan ini, dijepit ke dalam rentang tahun ajaran
+                    state = KalenderUiState.Success(res, mulai, selesai)
                     aturBulan(YearMonth.now().coerceIn(YearMonth.from(mulai), YearMonth.from(selesai)))
                 }
                 .onFailure { state = KalenderUiState.Error(it.toUserMessage()) }
@@ -108,6 +128,7 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
 
     // Sesi mengajar pada tanggal tertentu: diturunkan dari pola jadwal mingguan
     fun sesiPada(tanggal: LocalDate): List<JadwalMingguDto> {
+        if (liburPada(tanggal) != null) return emptyList()
         val s = state as? KalenderUiState.Success ?: return emptyList()
 
         if (tanggal < s.mulai || tanggal > s.selesai) return emptyList()
@@ -119,6 +140,7 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
 
     // Piket pada tanggal tertentu: diturunkan dari pola piket mingguan
     fun piketPada(tanggal: LocalDate): List<PiketMingguDto> {
+        if (liburPada(tanggal) != null) return emptyList()
         val s = state as? KalenderUiState.Success ?: return emptyList()
 
         if (tanggal < s.mulai || tanggal > s.selesai) return emptyList()
@@ -127,6 +149,15 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
             .filter { it.hari == tanggal.dayOfWeek.value }
             .sortedBy { it.jamKeMulai }
     }
+
+    fun acaraPada(tanggal: LocalDate): List<Acara> =
+        acara.filter { tanggal >= it.mulai && tanggal <= it.selesai }
+
+    fun liburPada(tanggal: LocalDate): Acara? =
+        acaraPada(tanggal).firstOrNull { it.dto.jenis == "libur" }
+
+    fun peringatanPada(tanggal: LocalDate): List<Acara> =
+        acaraPada(tanggal).filter { it.dto.jenis == "peringatan" }
 
     companion object {
         val Factory = viewModelFactory {

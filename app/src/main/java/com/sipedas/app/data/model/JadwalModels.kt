@@ -34,11 +34,25 @@ data class PiketDto(
     val tugas: String?,
 )
 
+data class LiburDto(
+    val judul: String,
+    val keterangan: String?,
+    @SerializedName("tanggal_mulai") val tanggalMulai: String,
+    @SerializedName("tanggal_selesai") val tanggalSelesai: String,
+)
+
+data class PeringatanDto(
+    val judul: String,
+    val keterangan: String?,
+)
+
 data class JadwalHariIniResponse(
     val tanggal: String,
     @SerializedName("jam_server") val jamServer: String,
     val data: List<JadwalDto>,
     val piket: List<PiketDto>? = null,
+    val libur: LiburDto? = null,
+    val peringatan: List<PeringatanDto>? = null,
 )
 
 data class JadwalMingguDto(

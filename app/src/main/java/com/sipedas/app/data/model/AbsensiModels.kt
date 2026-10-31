@@ -13,6 +13,7 @@ data class KelasAbsenDto(
 data class KelasHariIniResponse(
     val tanggal: String,
     val data: List<KelasAbsenDto>,
+    val libur: LiburDto? = null,
 )
 
 data class SiswaAbsenDto(

@@ -30,11 +30,15 @@ import com.sipedas.app.data.model.JurnalDto
 import com.sipedas.app.ui.components.GlassCard
 import com.sipedas.app.ui.components.ScreenHeader
 import com.sipedas.app.ui.util.formatTanggalPendek
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JurnalScreen(
     onIsi: (jadwalId: Int) -> Unit,
+    onBukaRiwayat: () -> Unit,
     viewModel: JurnalViewModel = viewModel(factory = JurnalViewModel.Factory),
 ) {
     val s = viewModel.state
@@ -93,9 +97,20 @@ fun JurnalScreen(
                         JadwalJurnalCard(j, onIsi = { onIsi(j.id) })
                     }
 
-                    item(key = "kalender") {
-                        Spacer(Modifier.height(8.dp))
-                        KalenderJurnal()
+                    item(key = "riwayat") {
+                        GlassCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(24.dp))
+                                .clickable(onClick = onBukaRiwayat),
+                        ) {
+                            Text("Riwayat jurnal", style = MaterialTheme.typography.titleLarge)
+                            Text(
+                                "Kalender jurnal yang terisi dan yang terlewat di bulan-bulan sebelumnya",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
