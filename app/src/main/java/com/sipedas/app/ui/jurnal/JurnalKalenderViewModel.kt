@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import com.sipedas.app.ui.kalender.Acara
+import com.sipedas.app.data.model.AcaraDto
 
 class JurnalKalenderViewModel(private val api: ApiService) : ViewModel() {
     var acara by mutableStateOf<List<Acara>>(emptyList())
@@ -137,8 +138,15 @@ class JurnalKalenderViewModel(private val api: ApiService) : ViewModel() {
             .sortedBy { it.jamKeMulai ?: 99 }
 
     // Sesi mengajar di tanggal yang sudah lewat tapi jurnalnya tidak ada
-    fun liburPada(tanggal: LocalDate): Acara? =
-        acara.firstOrNull { it.dto.jenis == "libur" && tanggal >= it.mulai && tanggal <= it.selesai }
+    fun liburPada(tanggal: LocalDate): Acara? {
+        // Sabtu dan Minggu: libur otomatis
+        if (tanggal.dayOfWeek.value > 5) {
+            val iso = tanggal.toString()
+            return Acara(AcaraDto(0, "Akhir pekan", "libur", iso, iso, null), tanggal, tanggal)
+        }
+
+        return null
+    }
     fun terlewatPada(tanggal: LocalDate): List<JadwalMingguDto> {
         if (liburPada(tanggal) != null) return emptyList()
         val pola = jadwal ?: return emptyList()

@@ -153,8 +153,18 @@ class KalenderViewModel(private val api: ApiService) : ViewModel() {
     fun acaraPada(tanggal: LocalDate): List<Acara> =
         acara.filter { tanggal >= it.mulai && tanggal <= it.selesai }
 
-    fun liburPada(tanggal: LocalDate): Acara? =
-        acaraPada(tanggal).firstOrNull { it.dto.jenis == "libur" }
+    fun liburPada(tanggal: LocalDate): Acara? {
+        val acaraLibur = acaraPada(tanggal).firstOrNull { it.dto.jenis == "libur" }
+        if (acaraLibur != null) return acaraLibur
+
+        // Sabtu dan Minggu: libur otomatis
+        if (tanggal.dayOfWeek.value > 5) {
+            val iso = tanggal.toString()
+            return Acara(AcaraDto(0, "Akhir pekan", "libur", iso, iso, null), tanggal, tanggal)
+        }
+
+        return null
+    }
 
     fun peringatanPada(tanggal: LocalDate): List<Acara> =
         acaraPada(tanggal).filter { it.dto.jenis == "peringatan" }
