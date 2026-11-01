@@ -46,41 +46,48 @@ import androidx.compose.ui.unit.dp
 import com.sipedas.app.data.model.PengumumanDto
 import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.util.formatWaktu
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.ui.unit.sp
 
 private val warnaPenting = Color(0xFFDC2626)
 
 // Ikon lonceng di pojok kanan atas; lingkaran merah berisi jumlah yang belum dibaca
+// Ikon lonceng di pojok kanan atas; lencana merah berisi jumlah yang belum dibaca
+// Ikon lonceng mengambang di pojok kanan atas, tanpa latar
 @Composable
 fun LoncengPengumuman(belumDibaca: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.88f))
-                .border(1.dp, Color.White, CircleShape)
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Filled.Notifications,
-                contentDescription = "Pengumuman",
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape) // membatasi riak sentuhan agar bundar
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Filled.Notifications,
+            contentDescription = "Pengumuman",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(28.dp),
+        )
 
         if (belumDibaca > 0) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .size(20.dp)
+                    .padding(top = 3.dp, end = 3.dp)
+                    .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
                     .clip(CircleShape)
-                    .background(warnaPenting),
+                    .background(warnaPenting)
+                    .border(2.dp, Color.White, CircleShape)
+                    .padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = if (belumDibaca > 9) "9+" else "$belumDibaca",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 10.sp,
+                        lineHeight = 12.sp,
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                 )

@@ -338,7 +338,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     onClick = pengumuman::bukaPanel,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 8.dp, end = 16.dp),
+                        .padding(top = 2.dp, end = 10.dp),
                 )
             }
 
