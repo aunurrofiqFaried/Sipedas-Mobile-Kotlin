@@ -34,6 +34,7 @@ import com.sipedas.app.data.model.KelasRekapResponse
 import com.sipedas.app.data.model.RekapAbsensiResponse
 import com.sipedas.app.data.model.JurnalBulanResponse
 import com.sipedas.app.data.model.KalenderAkademikResponse
+import com.sipedas.app.data.model.PengumumanResponse
 
 
 interface ApiService {
@@ -112,4 +113,10 @@ interface ApiService {
 
     @GET("kalender-akademik")
     suspend fun kalenderAkademik(): KalenderAkademikResponse
+
+    @GET("pengumuman")
+    suspend fun pengumuman(): PengumumanResponse
+
+    @POST("pengumuman/dibaca")
+    suspend fun pengumumanDibaca(): MessageResponse
 }

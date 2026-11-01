@@ -52,6 +52,13 @@ import kotlin.math.abs
 import com.sipedas.app.ui.absensi.KelasBantuScreen
 import com.sipedas.app.ui.absensi.RekapAbsensiScreen
 import com.sipedas.app.ui.jurnal.RiwayatJurnalScreen
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sipedas.app.ui.pengumuman.LoncengPengumuman
+import com.sipedas.app.ui.pengumuman.PanelPengumuman
+import com.sipedas.app.ui.pengumuman.PengumumanViewModel
+import androidx.compose.ui.unit.dp
 
 object Routes {
     // Satu tujuan navigasi yang berisi kelima tab (digeser dengan pager)
@@ -97,6 +104,11 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
+    // Satu ViewModel pengumuman per sesi login
+    val pengumuman: PengumumanViewModel = viewModel(
+        key = "pengumuman-${session.token}",
+        factory = PengumumanViewModel.Factory,
+    )
 
     // Pindah tab: tetangga digeser dengan animasi, tab yang jauh langsung lompat
     // (supaya tab-tab di antaranya tidak ikut memuat data dari server)
@@ -122,189 +134,216 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
     // Hanya BK, waka kesiswaan, dan admin yang boleh menghubungi wali (server juga menolak role lain)
     val bolehHubungiWali = session.role in setOf("guru_bk", "kesiswaan", "admin")
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        // inset sistem sudah ditangani di MainActivity
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = {
-            AnimatedVisibility(
-                visible = rute == Routes.MAIN,
-                enter = slideInVertically { it },
-                exit = slideOutVertically { it },
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            // inset sistem sudah ditangani di MainActivity
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                AnimatedVisibility(
+                    visible = rute == Routes.MAIN,
+                    enter = slideInVertically { it },
+                    exit = slideOutVertically { it },
+                ) {
+                    GlassBottomBar(
+                        items = tabs,
+                        selectedRoute = tabs[pagerState.currentPage].route,
+                        onSelect = pindahTab,
+                    )
+                }
+            },
+        ) { padding ->
+            NavHost(
+                navController = nav,
+                startDestination = Routes.MAIN,
+                modifier = Modifier.padding(padding),
+                enterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = geser
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = geser
+                    )
+                },
+                popEnterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = geser
+                    )
+                },
+                popExitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = geser
+                    )
+                },
             ) {
-                GlassBottomBar(
-                    items = tabs,
-                    selectedRoute = tabs[pagerState.currentPage].route,
-                    onSelect = pindahTab,
-                )
-            }
-        },
-    ) { padding ->
-        NavHost(
-            navController = nav,
-            startDestination = Routes.MAIN,
-            modifier = Modifier.padding(padding),
-            enterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = geser)
-            },
-            exitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = geser)
-            },
-            popEnterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = geser)
-            },
-            popExitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = geser)
-            },
-        ) {
 
-            composable(Routes.MAIN) {
-                HorizontalPager(
-                    state = pagerState,
-                    beyondViewportPageCount = 1,
-                    modifier = Modifier.fillMaxSize(),
-                ) { index ->
-                    when (tabs[index].route) {
-                        Routes.HOME -> HomeScreen(
-                            session = session,
-                            onKeAbsensi = { pindahTab(Routes.ABSENSI) },
-                            onKeJurnal = { pindahTab(Routes.JURNAL) },
-                            onKePoin = { pindahTab(Routes.POIN) },
-                        )
+                composable(Routes.MAIN) {
+                    HorizontalPager(
+                        state = pagerState,
+                        beyondViewportPageCount = 1,
+                        modifier = Modifier.fillMaxSize(),
+                    ) { index ->
+                        when (tabs[index].route) {
+                            Routes.HOME -> HomeScreen(
+                                session = session,
+                                onKeAbsensi = { pindahTab(Routes.ABSENSI) },
+                                onKeJurnal = { pindahTab(Routes.JURNAL) },
+                                onKePoin = { pindahTab(Routes.POIN) },
+                            )
 
-                        Routes.ABSENSI -> KelasAbsensiScreen(
-                            tampilSholat = session.isWaliKelas,
-                            onBukaSholat = { nav.navigate(Routes.SHOLAT) },
-                            onBukaBantu = { nav.navigate(Routes.ABSENSI_BANTU) },
-                            onBukaRekap = { nav.navigate(Routes.ABSENSI_REKAP) },
-                            onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
-                        )
+                            Routes.ABSENSI -> KelasAbsensiScreen(
+                                tampilSholat = session.isWaliKelas,
+                                onBukaSholat = { nav.navigate(Routes.SHOLAT) },
+                                onBukaBantu = { nav.navigate(Routes.ABSENSI_BANTU) },
+                                onBukaRekap = { nav.navigate(Routes.ABSENSI_REKAP) },
+                                onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
+                            )
 
-                        Routes.JURNAL -> JurnalScreen(
-                            onIsi = { id -> nav.navigate("jurnal/isi/$id") },
-                            onBukaRiwayat = { nav.navigate(Routes.JURNAL_RIWAYAT) },
-                        )
+                            Routes.JURNAL -> JurnalScreen(
+                                onIsi = { id -> nav.navigate("jurnal/isi/$id") },
+                                onBukaRiwayat = { nav.navigate(Routes.JURNAL_RIWAYAT) },
+                            )
 
-                        Routes.POIN -> CariSiswaScreen(
-                            onPilih = { id -> nav.navigate("poin/siswa/$id") },
-                        )
+                            Routes.POIN -> CariSiswaScreen(
+                                onPilih = { id -> nav.navigate("poin/siswa/$id") },
+                            )
 
-                        Routes.PROFIL -> ProfileScreen(
-                            session = session,
-                            onLogout = onLogout,
-                            onUbahPassword = { nav.navigate(Routes.UBAH_PASSWORD) },
-                        )
+                            Routes.PROFIL -> ProfileScreen(
+                                session = session,
+                                onLogout = onLogout,
+                                onUbahPassword = { nav.navigate(Routes.UBAH_PASSWORD) },
+                            )
+                        }
                     }
                 }
+
+                composable(
+                    route = Routes.ABSENSI_SISWA,
+                    arguments = listOf(navArgument("kelasId") { type = NavType.IntType }),
+                ) { entry ->
+                    val kelasId = entry.arguments?.getInt("kelasId") ?: return@composable
+
+                    AbsensiSiswaScreen(
+                        kelasId = kelasId,
+                        onBack = { nav.popBackStack() },
+                    )
+                }
+
+                composable(
+                    route = Routes.JURNAL_ISI,
+                    arguments = listOf(navArgument("jadwalId") { type = NavType.IntType }),
+                ) { entry ->
+                    val jadwalId = entry.arguments?.getInt("jadwalId") ?: return@composable
+
+                    JurnalFormScreen(
+                        jadwalId = jadwalId,
+                        onBack = { nav.popBackStack() },
+                        onSelesai = { nav.popBackStack() },
+                    )
+                }
+
+                composable(
+                    route = Routes.POIN_SISWA,
+                    arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+                ) { entry ->
+                    val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                    PoinSiswaScreen(
+                        siswaId = siswaId,
+                        onBack = { nav.popBackStack() },
+                        onCatat = { nav.navigate("poin/catat/$siswaId") },
+                        bolehHubungiWali = bolehHubungiWali,
+                        onHubungiWali = { nav.navigate("poin/wali/$siswaId") },
+                    )
+                }
+
+                composable(
+                    route = Routes.POIN_CATAT,
+                    arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+                ) { entry ->
+                    val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                    CatatPelanggaranScreen(
+                        siswaId = siswaId,
+                        onBack = { nav.popBackStack() },
+                        onSelesai = { nav.popBackStack() },
+                    )
+                }
+
+                composable(
+                    route = Routes.POIN_WALI,
+                    arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+                ) { entry ->
+                    val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                    KontakWaliScreen(
+                        siswaId = siswaId,
+                        onBack = { nav.popBackStack() },
+                    )
+                }
+
+                composable(Routes.UBAH_PASSWORD) {
+                    UbahPasswordScreen(
+                        onBack = { nav.popBackStack() },
+                        onSelesai = { nav.popBackStack() },
+                    )
+                }
+
+                composable(Routes.SHOLAT) {
+                    SholatKelasScreen(
+                        onBack = { nav.popBackStack() },
+                        onPilih = { kelasId, waktu -> nav.navigate("sholat/$waktu/$kelasId") },
+                    )
+                }
+
+                composable(
+                    route = Routes.SHOLAT_SISWA,
+                    arguments = listOf(
+                        navArgument("waktu") { type = NavType.StringType },
+                        navArgument("kelasId") { type = NavType.IntType },
+                    ),
+                ) { entry ->
+                    val waktu = entry.arguments?.getString("waktu") ?: return@composable
+                    val kelasId = entry.arguments?.getInt("kelasId") ?: return@composable
+
+                    SholatSiswaScreen(
+                        waktu = waktu,
+                        kelasId = kelasId,
+                        onBack = { nav.popBackStack() },
+                    )
+                }
+                composable(Routes.ABSENSI_BANTU) {
+                    KelasBantuScreen(
+                        onBack = { nav.popBackStack() },
+                        onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
+                    )
+                }
+                composable(Routes.ABSENSI_REKAP) {
+                    RekapAbsensiScreen(onBack = { nav.popBackStack() })
+                }
+                composable(Routes.JURNAL_RIWAYAT) {
+                    RiwayatJurnalScreen(onBack = { nav.popBackStack() })
+                }
             }
-
-            composable(
-                route = Routes.ABSENSI_SISWA,
-                arguments = listOf(navArgument("kelasId") { type = NavType.IntType }),
-            ) { entry ->
-                val kelasId = entry.arguments?.getInt("kelasId") ?: return@composable
-
-                AbsensiSiswaScreen(
-                    kelasId = kelasId,
-                    onBack = { nav.popBackStack() },
+            // Lonceng hanya tampil di layar tab (tersembunyi di layar detail)
+            if (rute == Routes.MAIN) {
+                LoncengPengumuman(
+                    belumDibaca = pengumuman.belumDibaca,
+                    onClick = pengumuman::bukaPanel,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 8.dp, end = 16.dp),
                 )
             }
 
-            composable(
-                route = Routes.JURNAL_ISI,
-                arguments = listOf(navArgument("jadwalId") { type = NavType.IntType }),
-            ) { entry ->
-                val jadwalId = entry.arguments?.getInt("jadwalId") ?: return@composable
-
-                JurnalFormScreen(
-                    jadwalId = jadwalId,
-                    onBack = { nav.popBackStack() },
-                    onSelesai = { nav.popBackStack() },
-                )
-            }
-
-            composable(
-                route = Routes.POIN_SISWA,
-                arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
-            ) { entry ->
-                val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
-
-                PoinSiswaScreen(
-                    siswaId = siswaId,
-                    onBack = { nav.popBackStack() },
-                    onCatat = { nav.navigate("poin/catat/$siswaId") },
-                    bolehHubungiWali = bolehHubungiWali,
-                    onHubungiWali = { nav.navigate("poin/wali/$siswaId") },
-                )
-            }
-
-            composable(
-                route = Routes.POIN_CATAT,
-                arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
-            ) { entry ->
-                val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
-
-                CatatPelanggaranScreen(
-                    siswaId = siswaId,
-                    onBack = { nav.popBackStack() },
-                    onSelesai = { nav.popBackStack() },
-                )
-            }
-
-            composable(
-                route = Routes.POIN_WALI,
-                arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
-            ) { entry ->
-                val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
-
-                KontakWaliScreen(
-                    siswaId = siswaId,
-                    onBack = { nav.popBackStack() },
-                )
-            }
-
-            composable(Routes.UBAH_PASSWORD) {
-                UbahPasswordScreen(
-                    onBack = { nav.popBackStack() },
-                    onSelesai = { nav.popBackStack() },
-                )
-            }
-
-            composable(Routes.SHOLAT) {
-                SholatKelasScreen(
-                    onBack = { nav.popBackStack() },
-                    onPilih = { kelasId, waktu -> nav.navigate("sholat/$waktu/$kelasId") },
-                )
-            }
-
-            composable(
-                route = Routes.SHOLAT_SISWA,
-                arguments = listOf(
-                    navArgument("waktu") { type = NavType.StringType },
-                    navArgument("kelasId") { type = NavType.IntType },
-                ),
-            ) { entry ->
-                val waktu = entry.arguments?.getString("waktu") ?: return@composable
-                val kelasId = entry.arguments?.getInt("kelasId") ?: return@composable
-
-                SholatSiswaScreen(
-                    waktu = waktu,
-                    kelasId = kelasId,
-                    onBack = { nav.popBackStack() },
-                )
-            }
-            composable(Routes.ABSENSI_BANTU) {
-                KelasBantuScreen(
-                    onBack = { nav.popBackStack() },
-                    onPilihKelas = { id, _ -> nav.navigate("absensi/siswa/$id") },
-                )
-            }
-            composable(Routes.ABSENSI_REKAP) {
-                RekapAbsensiScreen(onBack = { nav.popBackStack() })
-            }
-            composable(Routes.JURNAL_RIWAYAT) {
-                RiwayatJurnalScreen(onBack = { nav.popBackStack() })
-            }
+            // Panel dari kanan, di atas semuanya termasuk menu bawah
+            PanelPengumuman(pengumuman)
         }
     }
 }
