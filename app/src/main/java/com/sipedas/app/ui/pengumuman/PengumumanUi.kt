@@ -55,7 +55,12 @@ private val warnaPenting = Color(0xFFDC2626)
 // Ikon lonceng di pojok kanan atas; lencana merah berisi jumlah yang belum dibaca
 // Ikon lonceng mengambang di pojok kanan atas, tanpa latar
 @Composable
-fun LoncengPengumuman(belumDibaca: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun LoncengPengumuman(
+    belumDibaca: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.primary,
+) {
     Box(
         modifier = modifier
             .size(48.dp)
@@ -66,7 +71,7 @@ fun LoncengPengumuman(belumDibaca: Int, onClick: () -> Unit, modifier: Modifier 
         Icon(
             Icons.Filled.Notifications,
             contentDescription = "Pengumuman",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = tint,
             modifier = Modifier.size(28.dp),
         )
 

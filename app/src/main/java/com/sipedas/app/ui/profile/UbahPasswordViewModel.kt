@@ -12,6 +12,7 @@ import com.sipedas.app.data.api.ApiService
 import com.sipedas.app.data.api.toUserMessage
 import com.sipedas.app.data.model.UbahPasswordRequest
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.notifikasi.Notifikasi
 
 class UbahPasswordViewModel(private val api: ApiService) : ViewModel() {
 
@@ -63,6 +64,7 @@ class UbahPasswordViewModel(private val api: ApiService) : ViewModel() {
 
             runCatching { api.ubahPassword(UbahPasswordRequest(lama, baru, konfirmasi)) }
                 .onSuccess {
+                    Notifikasi.sukses("Password diubah", "Perangkat lain yang memakai akun ini keluar otomatis")
                     // Kosongkan isian dari memori begitu berhasil
                     lama = ""
                     baru = ""

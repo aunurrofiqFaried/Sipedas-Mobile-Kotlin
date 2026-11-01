@@ -13,6 +13,7 @@ import com.sipedas.app.data.api.toUserMessage
 import com.sipedas.app.data.model.CatatKontakRequest
 import com.sipedas.app.data.model.KontakWaliResponse
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.notifikasi.Notifikasi
 
 class KontakWaliViewModel(
     private val api: ApiService,
@@ -85,6 +86,7 @@ class KontakWaliViewModel(
                 )
             }
                 .onSuccess {
+                    Notifikasi.sukses("Riwayat kontak tercatat")
                     catatan = ""
                     ambil()
                 }

@@ -13,6 +13,7 @@ import com.sipedas.app.data.api.toUserMessage
 import com.sipedas.app.data.model.ItemAbsen
 import com.sipedas.app.data.model.SimpanAbsensiRequest
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.notifikasi.Notifikasi
 
 data class SiswaItem(
     val id: Int,
@@ -105,6 +106,7 @@ class AbsensiSiswaViewModel(
 
             runCatching { api.simpanAbsensi(request) }
                 .onSuccess {
+                    Notifikasi.sukses("Absensi tersimpan", "${it.jumlah} siswa dicatat")
                     AbsensiEvents.berubah.value += 1
                     pesan = PesanAbsensi("✓ Absensi tersimpan.", sukses = true)
                     muat() // ambil ulang agar tautan WhatsApp untuk yang tidak hadir terisi

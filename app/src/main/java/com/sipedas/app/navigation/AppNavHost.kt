@@ -59,6 +59,7 @@ import com.sipedas.app.ui.pengumuman.LoncengPengumuman
 import com.sipedas.app.ui.pengumuman.PanelPengumuman
 import com.sipedas.app.ui.pengumuman.PengumumanViewModel
 import androidx.compose.ui.unit.dp
+import com.sipedas.app.ui.notifikasi.NotifikasiHost
 
 object Routes {
     // Satu tujuan navigasi yang berisi kelima tab (digeser dengan pager)
@@ -192,9 +193,9 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                         when (tabs[index].route) {
                             Routes.HOME -> HomeScreen(
                                 session = session,
-                                onKeAbsensi = { pindahTab(Routes.ABSENSI) },
+                                belumDibaca = pengumuman.belumDibaca,
+                                onBukaPengumuman = pengumuman::bukaPanel,
                                 onKeJurnal = { pindahTab(Routes.JURNAL) },
-                                onKePoin = { pindahTab(Routes.POIN) },
                             )
 
                             Routes.ABSENSI -> KelasAbsensiScreen(
@@ -331,8 +332,8 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     RiwayatJurnalScreen(onBack = { nav.popBackStack() })
                 }
             }
-            // Lonceng hanya tampil di layar tab (tersembunyi di layar detail)
-            if (rute == Routes.MAIN) {
+            // Lonceng melayang hanya di tab selain Beranda (di Beranda ia ada di dalam kartu sambutan)
+            if (rute == Routes.MAIN && pagerState.currentPage != 0) {
                 LoncengPengumuman(
                     belumDibaca = pengumuman.belumDibaca,
                     onClick = pengumuman::bukaPanel,
@@ -344,6 +345,8 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
 
             // Panel dari kanan, di atas semuanya termasuk menu bawah
             PanelPengumuman(pengumuman)
+            // Notifikasi dalam aplikasi: paling atas, di atas semua layar
+            NotifikasiHost(modifier = Modifier.align(Alignment.TopCenter))
         }
     }
 }

@@ -14,6 +14,7 @@ import com.sipedas.app.data.model.CatatPelanggaranRequest
 import com.sipedas.app.data.model.CatatPelanggaranResponse
 import com.sipedas.app.data.model.JenisPelanggaranDto
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.notifikasi.Notifikasi
 
 class CatatPelanggaranViewModel(
     private val api: ApiService,
@@ -92,6 +93,10 @@ class CatatPelanggaranViewModel(
                 )
             }
                 .onSuccess {
+                    Notifikasi.sukses("Pelanggaran tercatat", "+${it.poinDitambahkan} poin · total ${it.totalPoin}")
+                    it.spBaru?.let { sp ->
+                        Notifikasi.peringatan("Batas ${sp.aturan?.nama ?: "SP"} tercapai", "Usulan SP dikirim ke kesiswaan")
+                    }
                     hasil = it
                     PoinEvents.berubah.value += 1
                 }

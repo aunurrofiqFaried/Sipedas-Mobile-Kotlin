@@ -35,6 +35,7 @@ import com.sipedas.app.data.model.RekapAbsensiResponse
 import com.sipedas.app.data.model.JurnalBulanResponse
 import com.sipedas.app.data.model.KalenderAkademikResponse
 import com.sipedas.app.data.model.PengumumanResponse
+import com.sipedas.app.data.model.StatistikGuruResponse
 
 
 interface ApiService {
@@ -119,4 +120,7 @@ interface ApiService {
 
     @POST("pengumuman/dibaca")
     suspend fun pengumumanDibaca(): MessageResponse
+
+    @GET("statistik/guru")
+    suspend fun statistikGuru(): StatistikGuruResponse
 }

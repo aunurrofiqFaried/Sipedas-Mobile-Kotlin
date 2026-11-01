@@ -16,6 +16,7 @@ import retrofit2.HttpException
 import com.sipedas.app.ui.jurnal.JurnalEvents
 import kotlinx.coroutines.flow.drop
 import com.sipedas.app.ui.AppEvents
+import com.sipedas.app.data.model.StatistikGuruResponse
 
 sealed interface HomeState {
     data object Loading : HomeState
@@ -25,6 +26,9 @@ sealed interface HomeState {
 }
 
 class HomeViewModel(private val api: ApiService) : ViewModel() {
+
+    var statistik by mutableStateOf<StatistikGuruResponse?>(null)
+        private set
 
     var state by mutableStateOf<HomeState>(HomeState.Loading)
         private set
@@ -63,6 +67,9 @@ class HomeViewModel(private val api: ApiService) : ViewModel() {
                     HomeState.Error(e.toUserMessage())
                 }
             }
+
+        // Statistik dimuat terpisah: kegagalannya tidak boleh mengganggu jadwal
+        runCatching { api.statistikGuru() }.onSuccess { statistik = it }
     }
 
     companion object {

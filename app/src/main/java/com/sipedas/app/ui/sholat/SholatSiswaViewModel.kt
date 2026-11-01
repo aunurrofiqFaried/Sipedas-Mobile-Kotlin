@@ -14,6 +14,7 @@ import com.sipedas.app.data.model.ItemSholat
 import com.sipedas.app.data.model.SimpanSholatRequest
 import com.sipedas.app.ui.absensi.PesanAbsensi
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.notifikasi.Notifikasi
 
 data class SholatItem(
     val id: Int,
@@ -106,6 +107,7 @@ class SholatSiswaViewModel(
 
             runCatching { api.simpanSholat(request) }
                 .onSuccess {
+                    Notifikasi.sukses("Absensi sholat ${labelWaktu(waktu)} tersimpan", "${it.jumlah} siswa dicatat")
                     SholatEvents.berubah.value += 1
                     pesan = PesanAbsensi(
                         "✓ Absensi sholat ${labelWaktu(waktu)} tersimpan. Masih bisa diubah hari ini.",

@@ -13,6 +13,7 @@ import com.sipedas.app.data.api.toUserMessage
 import com.sipedas.app.data.model.JadwalDto
 import com.sipedas.app.data.model.SimpanJurnalRequest
 import kotlinx.coroutines.launch
+import com.sipedas.app.ui.notifikasi.Notifikasi
 
 class JurnalFormViewModel(
     private val api: ApiService,
@@ -112,6 +113,7 @@ class JurnalFormViewModel(
                 )
             }
                 .onSuccess {
+                    Notifikasi.sukses("Jurnal tersimpan", "Materi pembelajaran berhasil dicatat")
                     JurnalEvents.berubah.value += 1
                     selesai = true
                 }

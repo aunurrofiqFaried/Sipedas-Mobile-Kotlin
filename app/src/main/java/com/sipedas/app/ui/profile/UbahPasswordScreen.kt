@@ -47,10 +47,7 @@ fun UbahPasswordScreen(
     var tampil by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel.selesai) {
-        if (viewModel.selesai) {
-            Toast.makeText(context, "Password berhasil diubah", Toast.LENGTH_SHORT).show()
-            onSelesai()
-        }
+        if (viewModel.selesai) onSelesai()
     }
 
     Column(
