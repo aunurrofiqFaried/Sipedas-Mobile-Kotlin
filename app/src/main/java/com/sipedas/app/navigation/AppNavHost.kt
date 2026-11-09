@@ -258,7 +258,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
 
                     PoinSiswaScreen(
-                        bolehRemisi = bolehHubungiWali,
+                        bolehRemisi = true,
                         onBeriRemisi = { nav.navigate("poin/remisi/$siswaId") },
                         siswaId = siswaId,
                         onBack = { nav.popBackStack() },
