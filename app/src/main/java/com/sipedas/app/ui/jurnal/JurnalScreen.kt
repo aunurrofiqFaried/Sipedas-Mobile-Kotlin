@@ -104,10 +104,10 @@ fun JurnalScreen(
                                 .clip(RoundedCornerShape(24.dp))
                                 .clickable(onClick = onBukaRiwayat),
                         ) {
-                            Text("Riwayat jurnal", style = MaterialTheme.typography.titleLarge)
+                            Text("Riwayat jurnal", style = MaterialTheme.typography.titleMedium)
                             Text(
                                 "Kalender jurnal yang terisi dan yang terlewat di bulan-bulan sebelumnya",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }

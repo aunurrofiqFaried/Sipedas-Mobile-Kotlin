@@ -28,6 +28,8 @@ import com.sipedas.app.ui.components.GlassCard
 import com.sipedas.app.ui.components.ScreenHeader
 import com.sipedas.app.ui.util.formatTanggalPendek
 import androidx.compose.material3.OutlinedButton
+import com.sipedas.app.data.model.RemisiDto
+import com.sipedas.app.ui.theme.Green600
 
 @Composable
 fun PoinSiswaScreen(
@@ -36,6 +38,8 @@ fun PoinSiswaScreen(
     onCatat: () -> Unit,
     bolehHubungiWali: Boolean,
     onHubungiWali: () -> Unit,
+    bolehRemisi: Boolean,
+    onBeriRemisi: () -> Unit,
     viewModel: PoinSiswaViewModel = viewModel(
         key = "poin-siswa-$siswaId",
         factory = PoinSiswaViewModel.factory(siswaId),
@@ -64,13 +68,13 @@ fun PoinSiswaScreen(
                 Button(onClick = viewModel::muat) { Text("Coba lagi") }
             }
 
-            else -> Konten(data, onCatat, bolehHubungiWali, onHubungiWali)
+            else -> Konten(data, onCatat, bolehHubungiWali, onHubungiWali, bolehRemisi, onBeriRemisi)
         }
     }
 }
 
 @Composable
-private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit, bolehHubungiWali: Boolean, onHubungiWali: () -> Unit,) {
+private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit, bolehHubungiWali: Boolean, onHubungiWali: () -> Unit, bolehRemisi: Boolean, onBeriRemisi: () -> Unit,) {
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -96,6 +100,13 @@ private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit, bolehH
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (data.totalRemisi > 0) {
+                        Text(
+                            "Pelanggaran ${data.totalPelanggaran} − remisi ${data.totalRemisi}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Green600,
+                        )
+                    }
 
                     if (data.sp.isNotEmpty()) {
                         Spacer(Modifier.height(12.dp))
@@ -128,6 +139,16 @@ private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit, bolehH
             }
 
             items(data.riwayat, key = { it.id }) { RiwayatItem(it) }
+
+            val remisi = data.remisi.orEmpty()
+
+            if (remisi.isNotEmpty()) {
+                item(key = "judul-remisi") {
+                    Text("Riwayat remisi", style = MaterialTheme.typography.titleMedium)
+                }
+
+                items(remisi, key = { "remisi-${it.id}" }) { RemisiItem(it) }
+            }
         }
 
         Column(
@@ -141,6 +162,15 @@ private fun Konten(data: RiwayatPelanggaranResponse, onCatat: () -> Unit, bolehH
                         .fillMaxWidth()
                         .height(48.dp),
                 ) { Text("Hubungi wali", style = MaterialTheme.typography.labelLarge) }
+            }
+
+            if (bolehRemisi && data.totalPoin > 0) {
+                OutlinedButton(
+                    onClick = onBeriRemisi,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                ) { Text("Beri remisi poin", style = MaterialTheme.typography.labelLarge) }
             }
 
             Button(
@@ -174,6 +204,32 @@ private fun RiwayatItem(p: PelanggaranDto) {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RemisiItem(r: RemisiDto) {
+    GlassCard(modifier = Modifier.fillMaxWidth(), contentPadding = 16.dp) {
+        Row(verticalAlignment = Alignment.Top) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(r.jenis?.nama ?: "-", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "${formatTanggalPendek(r.tanggal)} · ${r.pencatat?.name ?: "-"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (!r.keterangan.isNullOrBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(r.keterangan, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            Text(
+                "−${r.poin}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Green600,
             )
         }
     }

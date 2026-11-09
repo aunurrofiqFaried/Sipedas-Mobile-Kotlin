@@ -57,8 +57,11 @@ data class RiwayatPelanggaranResponse(
     val siswa: SiswaRingkas,
     @SerializedName("tahun_ajaran") val tahunAjaran: String,
     @SerializedName("total_poin") val totalPoin: Int,
+    @SerializedName("total_pelanggaran") val totalPelanggaran: Int = 0,
+    @SerializedName("total_remisi") val totalRemisi: Int = 0,
     val sp: List<SpSiswaDto>,
     val riwayat: List<PelanggaranDto>,
+    val remisi: List<RemisiDto>? = null,
 )
 
 data class CatatPelanggaranRequest(

@@ -24,9 +24,11 @@ import com.sipedas.app.ui.login.LoginScreen
 import com.sipedas.app.ui.theme.SipedasTheme
 import com.sipedas.app.navigation.AppNavHost
 import com.sipedas.app.ui.AppEvents
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),

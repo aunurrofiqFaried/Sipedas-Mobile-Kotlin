@@ -60,6 +60,7 @@ import com.sipedas.app.ui.pengumuman.PanelPengumuman
 import com.sipedas.app.ui.pengumuman.PengumumanViewModel
 import androidx.compose.ui.unit.dp
 import com.sipedas.app.ui.notifikasi.NotifikasiHost
+import com.sipedas.app.ui.poin.BeriRemisiScreen
 
 object Routes {
     // Satu tujuan navigasi yang berisi kelima tab (digeser dengan pager)
@@ -84,6 +85,7 @@ object Routes {
     const val ABSENSI_BANTU = "absensi/bantu"
     const val ABSENSI_REKAP = "absensi/rekap"
     const val JURNAL_RIWAYAT = "jurnal/riwayat"
+    const val POIN_REMISI = "poin/remisi/{siswaId}"
 }
 
 private val tabs = listOf(
@@ -256,6 +258,8 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
 
                     PoinSiswaScreen(
+                        bolehRemisi = bolehHubungiWali,
+                        onBeriRemisi = { nav.navigate("poin/remisi/$siswaId") },
                         siswaId = siswaId,
                         onBack = { nav.popBackStack() },
                         onCatat = { nav.navigate("poin/catat/$siswaId") },
@@ -330,6 +334,18 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                 }
                 composable(Routes.JURNAL_RIWAYAT) {
                     RiwayatJurnalScreen(onBack = { nav.popBackStack() })
+                }
+                composable(
+                    route = Routes.POIN_REMISI,
+                    arguments = listOf(navArgument("siswaId") { type = NavType.IntType }),
+                ) { entry ->
+                    val siswaId = entry.arguments?.getInt("siswaId") ?: return@composable
+
+                    BeriRemisiScreen(
+                        siswaId = siswaId,
+                        onBack = { nav.popBackStack() },
+                        onSelesai = { nav.popBackStack() },
+                    )
                 }
             }
             // Lonceng melayang hanya di tab selain Beranda (di Beranda ia ada di dalam kartu sambutan)
