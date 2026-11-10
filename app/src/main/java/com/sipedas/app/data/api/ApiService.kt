@@ -39,6 +39,9 @@ import com.sipedas.app.data.model.StatistikGuruResponse
 import com.sipedas.app.data.model.JenisRemisiResponse
 import com.sipedas.app.data.model.BeriRemisiRequest
 import com.sipedas.app.data.model.BeriRemisiResponse
+import com.sipedas.app.data.model.DashboardPimpinan
+import com.sipedas.app.data.model.KepatuhanJurnalResponse
+import com.sipedas.app.data.model.DetailKepatuhan
 
 
 interface ApiService {
@@ -132,4 +135,20 @@ interface ApiService {
 
     @POST("remisi")
     suspend fun beriRemisi(@Body body: BeriRemisiRequest): BeriRemisiResponse
+
+    @GET("pimpinan/dashboard")
+    suspend fun dashboardPimpinan(): DashboardPimpinan
+
+    @GET("pimpinan/kepatuhan-jurnal")
+    suspend fun kepatuhanJurnal(
+        @Query("dari") dari: String? = null,
+        @Query("sampai") sampai: String? = null,
+    ): KepatuhanJurnalResponse
+
+    @GET("pimpinan/kepatuhan-jurnal/{id}")
+    suspend fun detailKepatuhan(
+        @Path("id") id: Int,
+        @Query("dari") dari: String? = null,
+        @Query("sampai") sampai: String? = null,
+    ): DetailKepatuhan
 }

@@ -61,6 +61,12 @@ import com.sipedas.app.ui.pengumuman.PengumumanViewModel
 import androidx.compose.ui.unit.dp
 import com.sipedas.app.ui.notifikasi.NotifikasiHost
 import com.sipedas.app.ui.poin.BeriRemisiScreen
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.runtime.remember
+import com.sipedas.app.ui.components.PlaceholderScreen
+import com.sipedas.app.ui.pimpinan.PimpinanScreen
+import com.sipedas.app.ui.pimpinan.KepatuhanScreen
+import com.sipedas.app.ui.pimpinan.DetailKepatuhanScreen
 
 object Routes {
     // Satu tujuan navigasi yang berisi kelima tab (digeser dengan pager)
@@ -86,15 +92,29 @@ object Routes {
     const val ABSENSI_REKAP = "absensi/rekap"
     const val JURNAL_RIWAYAT = "jurnal/riwayat"
     const val POIN_REMISI = "poin/remisi/{siswaId}"
+    // Khusus pimpinan
+    const val PIMPINAN = "pimpinan"
+    const val KEPATUHAN = "pimpinan/kepatuhan"
+    const val KEPATUHAN_GURU = "pimpinan/kepatuhan/{guruId}?dari={dari}&sampai={sampai}"
 }
 
-private val tabs = listOf(
+// Peran yang melihat tab Pimpinan menggantikan Beranda
+private val PERAN_PIMPINAN = setOf("kepala_sekolah", "waka_kurikulum", "kesiswaan", "waka_sdm", "admin")
+
+private val tabGuru = listOf(
     TabItem(Routes.HOME, "Beranda", Icons.Filled.Home),
     TabItem(Routes.ABSENSI, "Absensi", Icons.Filled.CheckCircle),
     TabItem(Routes.JURNAL, "Jurnal", Icons.Filled.Edit),
     TabItem(Routes.POIN, "Poin", Icons.Filled.Warning),
     TabItem(Routes.PROFIL, "Profil", Icons.Filled.Person),
 )
+
+private fun tabUntuk(role: String): List<TabItem> =
+    if (role in PERAN_PIMPINAN) {
+        listOf(TabItem(Routes.PIMPINAN, "Pimpinan", Icons.Filled.Dashboard)) + tabGuru.drop(1)
+    } else {
+        tabGuru
+    }
 
 // Durasi singkat dan tegas supaya terasa seperti geser, bukan melayang
 private val geser = tween<IntOffset>(durationMillis = 250, easing = FastOutSlowInEasing)
@@ -105,6 +125,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
     val backStack by nav.currentBackStackEntryAsState()
     val rute = backStack?.destination?.route
 
+    val tabs = remember(session.role) { tabUntuk(session.role) }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
     // Satu ViewModel pengumuman per sesi login
@@ -131,7 +152,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
 
     // Tombol kembali HP: dari tab mana pun, kembali ke Beranda dulu sebelum keluar aplikasi
     BackHandler(enabled = rute == Routes.MAIN && pagerState.currentPage != 0) {
-        pindahTab(Routes.HOME)
+        pindahTab(tabs[0].route)
     }
 
     // Hanya BK, waka kesiswaan, dan admin yang boleh menghubungi wali (server juga menolak role lain)
@@ -198,6 +219,13 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                                 belumDibaca = pengumuman.belumDibaca,
                                 onBukaPengumuman = pengumuman::bukaPanel,
                                 onKeJurnal = { pindahTab(Routes.JURNAL) },
+                            )
+
+                            Routes.PIMPINAN -> PimpinanScreen(
+                                session = session,
+                                belumDibaca = pengumuman.belumDibaca,
+                                onBukaPengumuman = pengumuman::bukaPanel,
+                                onBukaKepatuhan = { nav.navigate(Routes.KEPATUHAN) },
                             )
 
                             Routes.ABSENSI -> KelasAbsensiScreen(
@@ -345,6 +373,31 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                         siswaId = siswaId,
                         onBack = { nav.popBackStack() },
                         onSelesai = { nav.popBackStack() },
+                    )
+                }
+                composable(Routes.KEPATUHAN) {
+                    KepatuhanScreen(
+                        onBack = { nav.popBackStack() },
+                        onBukaGuru = { id, dari, sampai ->
+                            nav.navigate("pimpinan/kepatuhan/$id?dari=$dari&sampai=$sampai")
+                        },
+                    )
+                }
+                composable(
+                    route = Routes.KEPATUHAN_GURU,
+                    arguments = listOf(
+                        navArgument("guruId") { type = NavType.IntType },
+                        navArgument("dari") { type = NavType.StringType; nullable = true; defaultValue = null },
+                        navArgument("sampai") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    ),
+                ) { entry ->
+                    val guruId = entry.arguments?.getInt("guruId") ?: return@composable
+
+                    DetailKepatuhanScreen(
+                        guruId = guruId,
+                        dari = entry.arguments?.getString("dari"),
+                        sampai = entry.arguments?.getString("sampai"),
+                        onBack = { nav.popBackStack() },
                     )
                 }
             }
