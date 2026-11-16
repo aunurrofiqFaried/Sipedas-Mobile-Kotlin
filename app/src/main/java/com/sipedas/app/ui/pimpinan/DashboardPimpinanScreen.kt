@@ -27,6 +27,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipedas.app.data.model.*
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import com.sipedas.app.ui.pengumuman.LoncengPengumuman
+import com.sipedas.app.ui.theme.Orange500
+import com.sipedas.app.ui.theme.Orange600
 
 private fun jam(a: Int, b: Int) = if (a == b) "$a" else "$a-$b"
 
@@ -42,17 +58,20 @@ fun DashboardPimpinanIsi(
     data: DashboardPimpinan,
     onBukaKepatuhan: () -> Unit,
     modifier: Modifier = Modifier,
+    nama: String = "Pimpinan",
+    belumDibaca: Int = 0,
+    onBukaPengumuman: () -> Unit = {},
 ) {
     Column(
         modifier
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(26.dp),
+            .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        KepalaDashboard(data)
-        BagianKehadiran(data.absensi)
+        HeroPimpinan(nama, data, belumDibaca, onBukaPengumuman)
         BagianPeringatan(data.peringatan, onBukaKepatuhan)
         BagianKpi(data)
+        BagianKehadiran(data.absensi)
 
         Bagian("Tren kehadiran 14 hari") {
             GrafikArea(
@@ -64,56 +83,13 @@ fun DashboardPimpinanIsi(
 
         BagianSholat(data.sholat)
 
+        // Salin judul "Peta panas ..." persis seperti di file lamamu
         Bagian("Peta panas kehadiran · 10 hari") { PetaPanasView(data.petaPanas) }
 
         BagianKelas(data)
         BagianJurnal(data, onBukaKepatuhan)
         BagianKesiswaan(data)
         BagianJurusan(data.jurusan)
-
-        // Ruang untuk menu bawah yang mengambang
-        Spacer(Modifier.height(96.dp))
-    }
-}
-
-/* ---------- Bagian-bagian ---------- */
-
-@Composable
-private fun KepalaDashboard(d: DashboardPimpinan) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            "PUSAT KENDALI SEKOLAH",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = PimpinanWarna.TeksOranye,
-            letterSpacing = 3.sp,
-        )
-        Text("Kondisi Sekolah", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text(
-            d.hari.label + if (d.hari.hariIni) "" else " · data hari efektif terakhir",
-            fontSize = 13.sp,
-            color = PimpinanWarna.Abu500,
-        )
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TitikLive()
-            Spacer(Modifier.width(6.dp))
-            Text("LIVE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PimpinanWarna.TeksHijau)
-            Text(
-                " · diperbarui ${d.diperbarui.drop(11).take(5)}",
-                fontSize = 11.sp,
-                color = PimpinanWarna.Abu500,
-            )
-        }
-
-        if (d.hari.libur != null) {
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "Hari ini libur (${d.hari.libur}). Angka di bawah memakai data hari efektif terakhir.",
-                fontSize = 12.sp,
-                color = PimpinanWarna.TeksKuning,
-            )
-        }
     }
 }
 
@@ -192,94 +168,153 @@ private fun BagianPeringatan(daftar: List<PeringatanDashboard>, onBukaKepatuhan:
 }
 
 @Composable
-private fun BarisDua(kiri: @Composable () -> Unit, kanan: @Composable () -> Unit) {
-    Row(
-        Modifier
+private fun HeroPimpinan(
+    nama: String,
+    d: DashboardPimpinan,
+    belumDibaca: Int,
+    onBukaPengumuman: () -> Unit,
+) {
+    val shape = RoundedCornerShape(28.dp)
+
+    Box(
+        modifier = Modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min),
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(Orange500, Orange600)))
+            .drawBehind {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.14f),
+                    radius = size.height * 0.9f,
+                    center = Offset(size.width * 0.95f, -size.height * 0.1f),
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.10f),
+                    radius = size.height * 0.5f,
+                    center = Offset(size.width * 0.72f, size.height * 1.05f),
+                )
+            }
+            .padding(22.dp),
     ) {
-        Box(
-            Modifier
-                .weight(1f)
-                .padding(end = 16.dp),
-        ) { kiri() }
-        Box(
-            Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(PimpinanWarna.Abu200),
+        Column {
+            Row(verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "Halo, $nama",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        d.hari.label + if (d.hari.hariIni) "" else " · data hari efektif terakhir",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.92f),
+                    )
+                    Text(
+                        "Diperbarui ${d.diperbarui.drop(11).take(5)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.80f),
+                    )
+                }
+
+                LoncengPengumuman(
+                    belumDibaca = belumDibaca,
+                    onClick = onBukaPengumuman,
+                    tint = Color.White,
+                    modifier = Modifier.offset(x = 10.dp, y = (-10).dp),
+                )
+            }
+
+            if (d.hari.libur != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Hari ini libur (${d.hari.libur}). Angka memakai data hari efektif terakhir.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White,
+                )
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PilPutih(teksPersen(d.absensi.persen), "Kehadiran siswa", Modifier.weight(1f))
+                PilPutih("${d.jurnalHari.terisi}/${d.jurnalHari.total}", "Jurnal hari ini", Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PilPutih(nilai: String, label: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color.White.copy(alpha = 0.22f))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+    ) {
+        Text(
+            nilai,
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
         )
-        Box(
-            Modifier
-                .weight(1f)
-                .padding(start = 16.dp),
-        ) { kanan() }
+        Text(label, style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.92f))
     }
 }
 
 @Composable
 private fun BagianKpi(d: DashboardPimpinan) {
-    val pel = d.ringkasan.pelanggaranBulan
+    val r = d.ringkasan
+    val pel = r.pelanggaranBulan
     val selisih = pel.jumlah - pel.jumlahLalu
     val teksSelisih = when {
         selisih == 0 -> "sama dengan bulan lalu"
-        selisih > 0 -> "▲ $selisih dari bulan lalu"
-        else -> "▼ ${-selisih} dari bulan lalu"
+        selisih > 0 -> "naik $selisih dari bulan lalu"
+        else -> "turun ${-selisih} dari bulan lalu"
     }
     val warnaSelisih = if (selisih > 0) PimpinanWarna.TeksMerah else PimpinanWarna.TeksHijau
     val j = d.jurnalHari
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(PimpinanWarna.Abu200),
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            KpiTile(
+                "Siswa aktif", "${r.siswa}", "${r.kelas} kelas",
+                PimpinanWarna.Abu500, PimpinanWarna.Hijau, Icons.Filled.Face,
+                Modifier.weight(1f).fillMaxHeight(),
+            )
+            KpiTile(
+                "Guru mengajar", "${r.guruMengajar}", "pada hari data",
+                PimpinanWarna.Abu500, PimpinanWarna.Biru, Icons.Filled.Person,
+                Modifier.weight(1f).fillMaxHeight(),
+            )
+        }
 
-        BarisDua(
-            kiri = {
-                Kpi("Siswa aktif", "${d.ringkasan.siswa}", "${d.ringkasan.kelas} kelas", PimpinanWarna.Abu500, PimpinanWarna.Hijau)
-            },
-            kanan = {
-                Kpi("Guru mengajar", "${d.ringkasan.guruMengajar}", "pada hari data", PimpinanWarna.Abu500, PimpinanWarna.Biru)
-            },
-        )
+        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            KpiTile(
+                "Jurnal hari ini", "${j.terisi}/${j.total}",
+                if (j.terlewat > 0) "${j.terlewat} terlewat" else "tidak ada yang terlewat",
+                if (j.terlewat > 0) PimpinanWarna.TeksMerah else PimpinanWarna.TeksHijau,
+                PimpinanWarna.Oranye, Icons.Filled.Create,
+                Modifier.weight(1f).fillMaxHeight(),
+            )
+            KpiTile(
+                "Pelanggaran bulan ini", "${pel.jumlah}", teksSelisih,
+                warnaSelisih, PimpinanWarna.Merah, Icons.Filled.Warning,
+                Modifier.weight(1f).fillMaxHeight(),
+            )
+        }
 
-        BarisDua(
-            kiri = {
-                Kpi(
-                    "Jurnal hari ini",
-                    "${j.terisi}/${j.total}",
-                    if (j.terlewat > 0) "${j.terlewat} terlewat" else "tidak ada yang terlewat",
-                    if (j.terlewat > 0) PimpinanWarna.TeksMerah else PimpinanWarna.TeksHijau,
-                    PimpinanWarna.Oranye,
-                )
-            },
-            kanan = {
-                Kpi("Pelanggaran bulan ini", "${pel.jumlah}", teksSelisih, warnaSelisih, PimpinanWarna.Merah)
-            },
-        )
-
-        BarisDua(
-            kiri = {
-                Kpi(
-                    "SP menunggu",
-                    "${d.ringkasan.spMenunggu}",
-                    "${d.ringkasan.mendekatiSp} siswa mendekati SP",
-                    PimpinanWarna.Abu500,
-                    PimpinanWarna.Merah,
-                )
-            },
-            kanan = {},
-        )
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(PimpinanWarna.Abu200),
-        )
+        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            KpiTile(
+                "SP menunggu", "${r.spMenunggu}", "perlu keputusan",
+                PimpinanWarna.Abu500, PimpinanWarna.Merah, Icons.Filled.Warning,
+                Modifier.weight(1f).fillMaxHeight(),
+            )
+            KpiTile(
+                "Mendekati SP", "${r.mendekatiSp}", "siswa mendekati batas",
+                PimpinanWarna.Abu500, PimpinanWarna.Oranye, Icons.Filled.Star,
+                Modifier.weight(1f).fillMaxHeight(),
+            )
+        }
     }
 }
 

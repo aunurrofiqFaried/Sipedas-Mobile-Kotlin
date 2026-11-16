@@ -48,25 +48,37 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipedas.app.data.model.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.sipedas.app.ui.components.GlassCard
+import com.sipedas.app.ui.theme.Danger
+import com.sipedas.app.ui.theme.Green600
+import com.sipedas.app.ui.theme.Green700
+import com.sipedas.app.ui.theme.Ink
+import com.sipedas.app.ui.theme.InkSoft
+import com.sipedas.app.ui.theme.Orange500
+import com.sipedas.app.ui.theme.Orange600
 
 /* ---------- Warna ---------- */
 
 object PimpinanWarna {
-    val Hijau = listOf(Color(0xFF10B981), Color(0xFF06B6D4))
-    val Oranye = listOf(Color(0xFFF97316), Color(0xFFF59E0B))
-    val Merah = listOf(Color(0xFFEF4444), Color(0xFFEC4899))
-    val Biru = listOf(Color(0xFF0EA5E9), Color(0xFF6366F1))
+    val Hijau = listOf(Green600, Green700)
+    val Oranye = listOf(Orange500, Orange600)
+    val Merah = listOf(Danger, Color(0xFFB91C1C))
+    val Biru = listOf(Color(0xFF0284C7), Color(0xFF0369A1))
 
     val Abu200 = Color(0xFFE5E7EB)
     val Abu400 = Color(0xFF9CA3AF)
-    val Abu500 = Color(0xFF6B7280)
-    val Abu700 = Color(0xFF374151)
+    val Abu500 = InkSoft
+    val Abu700 = Ink
 
-    val TeksHijau = Color(0xFF059669)
-    val TeksMerah = Color(0xFFDC2626)
-    val TeksKuning = Color(0xFFB45309)
-    val TeksBiru = Color(0xFF0369A1)
-    val TeksOranye = Color(0xFFEA580C)
+    val TeksHijau = Green700
+    val TeksMerah = Danger
+    val TeksKuning = Color(0xFFD97706)
+    val TeksBiru = Color(0xFF0284C7)
+    val TeksOranye = Orange600
 }
 
 fun gradPersen(p: Int?): List<Color> = when {
@@ -100,27 +112,15 @@ fun Bagian(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .padding(bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                judul.uppercase(),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = PimpinanWarna.Abu500,
-                letterSpacing = 1.5.sp,
-            )
+            Text(judul, style = MaterialTheme.typography.titleMedium)
             aksi?.invoke()
         }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(PimpinanWarna.Abu200),
-        )
-        Spacer(Modifier.height(12.dp))
-        isi()
+
+        GlassCard(modifier = Modifier.fillMaxWidth(), content = isi)
     }
 }
 
@@ -313,6 +313,35 @@ fun Kpi(
         }
         Text(nilai, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         if (sub != null) Text(sub, fontSize = 11.sp, color = subWarna)
+    }
+}
+
+@Composable
+fun KpiTile(
+    label: String,
+    nilai: String,
+    sub: String?,
+    subWarna: Color,
+    gradasi: List<Color>,
+    ikon: ImageVector,
+    modifier: Modifier = Modifier,
+) {
+    GlassCard(modifier = modifier, contentPadding = 14.dp) {
+        Box(
+            Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(gradasi[0].copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(ikon, contentDescription = null, tint = gradasi[0], modifier = Modifier.size(20.dp))
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        Text(nilai, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (sub != null) Text(sub, style = MaterialTheme.typography.labelSmall, color = subWarna)
     }
 }
 

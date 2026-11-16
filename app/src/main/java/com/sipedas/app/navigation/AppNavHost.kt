@@ -413,7 +413,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
             }
 
             // Panel dari kanan, di atas semuanya termasuk menu bawah
-            PanelPengumuman(pengumuman)
+            PanelPengumuman(pengumuman, bolehKelola = session.role in PERAN_PIMPINAN)
             // Notifikasi dalam aplikasi: paling atas, di atas semua layar
             NotifikasiHost(modifier = Modifier.align(Alignment.TopCenter))
         }

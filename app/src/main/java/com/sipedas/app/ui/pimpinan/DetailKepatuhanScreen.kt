@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sipedas.app.data.model.DetailKepatuhan
 import com.sipedas.app.data.model.SesiTerlewat
 import com.sipedas.app.ui.components.ScreenHeader
+import com.sipedas.app.ui.components.GlassCard
 
 @Composable
 fun DetailKepatuhanScreen(
@@ -88,7 +89,7 @@ private fun IsiDetail(data: DetailKepatuhan) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         item {
-            Column {
+            GlassCard(Modifier.fillMaxWidth()) {
                 Text(data.guru.nama, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 if (!data.guru.nip.isNullOrBlank()) {
                     Text("NIP ${data.guru.nip}", fontSize = 12.sp, color = PimpinanWarna.Abu500)
@@ -138,14 +139,16 @@ private fun IsiDetail(data: DetailKepatuhan) {
         }
 
         item {
-            Bagian("Sesi terlewat (${data.terlewat.size})") {
-                if (data.terlewat.isEmpty()) {
+            if (data.terlewat.isEmpty()) {
+                Bagian("Sesi terlewat (0)") {
                     Text(
                         "Tidak ada sesi yang terlewat di periode ini.",
                         fontSize = 13.sp,
                         color = PimpinanWarna.TeksHijau,
                     )
                 }
+            } else {
+                Text("Sesi terlewat (${data.terlewat.size})", style = MaterialTheme.typography.titleMedium)
             }
         }
 
@@ -161,7 +164,7 @@ private fun IsiDetail(data: DetailKepatuhan) {
 private fun GrupTanggal(sesi: List<SesiTerlewat>) {
     val pertama = sesi.first()
 
-    Column {
+    GlassCard(Modifier.fillMaxWidth(), contentPadding = 16.dp) {
         Text(
             "${pertama.hari}, ${pertama.tanggalLabel}",
             fontSize = 13.sp,

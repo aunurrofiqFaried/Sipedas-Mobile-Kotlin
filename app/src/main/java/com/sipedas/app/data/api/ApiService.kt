@@ -42,6 +42,9 @@ import com.sipedas.app.data.model.BeriRemisiResponse
 import com.sipedas.app.data.model.DashboardPimpinan
 import com.sipedas.app.data.model.KepatuhanJurnalResponse
 import com.sipedas.app.data.model.DetailKepatuhan
+import com.sipedas.app.data.model.SimpanPengumumanRequest
+import retrofit2.http.DELETE
+import retrofit2.http.PUT
 
 
 interface ApiService {
@@ -126,6 +129,15 @@ interface ApiService {
 
     @POST("pengumuman/dibaca")
     suspend fun pengumumanDibaca(): MessageResponse
+
+    @POST("pimpinan/pengumuman")
+    suspend fun buatPengumuman(@Body body: SimpanPengumumanRequest): MessageResponse
+
+    @PUT("pimpinan/pengumuman/{id}")
+    suspend fun ubahPengumuman(@Path("id") id: Int, @Body body: SimpanPengumumanRequest): MessageResponse
+
+    @DELETE("pimpinan/pengumuman/{id}")
+    suspend fun hapusPengumuman(@Path("id") id: Int): MessageResponse
 
     @GET("statistik/guru")
     suspend fun statistikGuru(): StatistikGuruResponse

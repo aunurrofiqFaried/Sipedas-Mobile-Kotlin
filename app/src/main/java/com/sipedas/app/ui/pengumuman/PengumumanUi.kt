@@ -48,6 +48,12 @@ import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.util.formatWaktu
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 private val warnaPenting = Color(0xFFDC2626)
 
@@ -101,10 +107,16 @@ fun LoncengPengumuman(
     }
 }
 
+
 // Panel yang meluncur dari sisi kanan, dengan latar gelap di sisi kiri
 @Composable
-fun PanelPengumuman(viewModel: PengumumanViewModel) {
+fun PanelPengumuman(viewModel: PengumumanViewModel, bolehKelola: Boolean = false) {
     BackHandler(enabled = viewModel.panelBuka) { viewModel.tutupPanel() }
+
+    // formTerbuka + formAwal: null berarti pengumuman baru
+    var formTerbuka by remember { mutableStateOf(false) }
+    var formAwal by remember { mutableStateOf<PengumumanDto?>(null) }
+    var akanHapus by remember { mutableStateOf<PengumumanDto?>(null) }
 
     AnimatedVisibility(
         visible = viewModel.panelBuka,
@@ -155,6 +167,15 @@ fun PanelPengumuman(viewModel: PengumumanViewModel) {
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.weight(1f),
                     )
+                    if (bolehKelola) {
+                        IconButton(onClick = {
+                            formAwal = null
+                            viewModel.bersihkanPesanForm()
+                            formTerbuka = true
+                        }) {
+                            Icon(Icons.Filled.Add, contentDescription = "Buat pengumuman")
+                        }
+                    }
                     IconButton(onClick = viewModel::tutupPanel) {
                         Icon(Icons.Filled.Close, contentDescription = "Tutup")
                     }
@@ -185,16 +206,58 @@ fun PanelPengumuman(viewModel: PengumumanViewModel) {
                     }
 
                     items(viewModel.daftar, key = { it.id }) { p ->
-                        PengumumanItem(p, baru = p.id > viewModel.batasBaru)
+                        PengumumanItem(
+                            p = p,
+                            baru = p.id > viewModel.batasBaru,
+                            bisaKelola = bolehKelola && p.dapatDiubah == true,
+                            onUbah = {
+                                formAwal = p
+                                viewModel.bersihkanPesanForm()
+                                formTerbuka = true
+                            },
+                            onHapus = { akanHapus = p },
+                        )
                     }
                 }
             }
         }
     }
+    if (formTerbuka) {
+        FormPengumumanDialog(
+            awal = formAwal,
+            menyimpan = viewModel.menyimpan,
+            pesan = viewModel.pesanForm,
+            onSimpan = { judul, isi, tingkat, berlaku ->
+                viewModel.simpan(formAwal?.id, judul, isi, tingkat, berlaku) { formTerbuka = false }
+            },
+            onTutup = { formTerbuka = false },
+        )
+    }
+
+    akanHapus?.let { p ->
+        AlertDialog(
+            onDismissRequest = { akanHapus = null },
+            title = { Text("Hapus pengumuman?") },
+            text = { Text("\"${p.judul}\" akan dihapus permanen.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.hapus(p.id)
+                    akanHapus = null
+                }) { Text("Hapus", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { akanHapus = null }) { Text("Batal") } },
+        )
+    }
 }
 
 @Composable
-private fun PengumumanItem(p: PengumumanDto, baru: Boolean) {
+private fun PengumumanItem(
+    p: PengumumanDto,
+    baru: Boolean,
+    bisaKelola: Boolean,
+    onUbah: () -> Unit,
+    onHapus: () -> Unit,
+) {
     val penting = p.tingkat == "penting"
     val warna = if (penting) warnaPenting else MaterialTheme.colorScheme.primary
     val shape = RoundedCornerShape(18.dp)
@@ -234,6 +297,14 @@ private fun PengumumanItem(p: PengumumanDto, baru: Boolean) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (bisaKelola) {
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onUbah) { Text("Ubah") }
+                TextButton(onClick = onHapus) {
+                    Text("Hapus", color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
     }
 }
 

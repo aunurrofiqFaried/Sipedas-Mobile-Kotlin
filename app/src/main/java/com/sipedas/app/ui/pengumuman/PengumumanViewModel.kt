@@ -14,6 +14,7 @@ import com.sipedas.app.data.model.PengumumanDto
 import com.sipedas.app.ui.AppEvents
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.sipedas.app.data.model.SimpanPengumumanRequest
 
 class PengumumanViewModel(private val api: ApiService) : ViewModel() {
 
@@ -68,6 +69,53 @@ class PengumumanViewModel(private val api: ApiService) : ViewModel() {
                 belumDibaca = 0
                 terakhirDibaca = daftar.maxOfOrNull { it.id } ?: terakhirDibaca
             }
+    }
+
+    var menyimpan by mutableStateOf(false)
+        private set
+
+    // Pesan kesalahan untuk formulir (misalnya validasi dari server)
+    var pesanForm by mutableStateOf<String?>(null)
+        private set
+
+    fun bersihkanPesanForm() {
+        pesanForm = null
+    }
+
+    // id = null untuk pengumuman baru, selain itu mengubah yang ada
+    fun simpan(
+        id: Int?,
+        judul: String,
+        isi: String,
+        tingkat: String,
+        berlakuSampai: String?,
+        onBerhasil: () -> Unit,
+    ) {
+        if (menyimpan) return
+
+        viewModelScope.launch {
+            menyimpan = true
+            pesanForm = null
+
+            val body = SimpanPengumumanRequest(judul.trim(), isi.trim(), tingkat, berlakuSampai)
+
+            runCatching { if (id == null) api.buatPengumuman(body) else api.ubahPengumuman(id, body) }
+                .onSuccess {
+                    muat()
+                    onBerhasil()
+                }
+                .onFailure { pesanForm = it.toUserMessage() }
+
+            menyimpan = false
+        }
+    }
+
+    fun hapus(id: Int) {
+        viewModelScope.launch {
+            runCatching { api.hapusPengumuman(id) }
+                .onSuccess { muat() }
+                .onFailure { error = it.toUserMessage() }
+        }
     }
 
     fun bukaPanel() {

@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sipedas.app.data.model.GuruKepatuhan
 import com.sipedas.app.data.model.KepatuhanJurnalResponse
 import com.sipedas.app.ui.components.ScreenHeader
+import com.sipedas.app.ui.components.GlassCard
 
 @Composable
 fun KepatuhanScreen(
@@ -150,7 +151,7 @@ private fun IsiKepatuhan(
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { Ringkasan(data) }
 
@@ -229,7 +230,7 @@ private fun IsiKepatuhan(
 private fun Ringkasan(data: KepatuhanJurnalResponse) {
     val r = data.ringkasan
 
-    Column {
+    GlassCard(Modifier.fillMaxWidth()) {
         Text(
             data.periode.label,
             fontSize = 12.sp,
@@ -273,11 +274,12 @@ private fun Ringkasan(data: KepatuhanJurnalResponse) {
 private fun BarisGuru(g: GuruKepatuhan, onClick: () -> Unit) {
     val warna = gradPersen(g.persen)
 
-    Column(
-        Modifier
+    GlassCard(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(onClick = onClick),
+        contentPadding = 16.dp,
     ) {
         Row(
             Modifier.fillMaxWidth(),
