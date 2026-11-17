@@ -22,11 +22,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sipedas.app.ui.theme.Orange500
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 
 data class TabItem(
     val route: String,
     val label: String,
     val icon: ImageVector,
+    val bisaGanti: Boolean = false,
 )
 
 @Composable
@@ -68,14 +74,25 @@ fun GlassBottomBar(
                     .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Icon(item.icon, contentDescription = item.label, tint = warna)
-                Text(
-                    text = item.label,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = if (aktif) FontWeight.Bold else FontWeight.Medium,
-                    color = warna,
-                    maxLines = 1,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    // Segitiga punya ruang kosong di kanannya, jadi kelompok digeser sedikit
+                    // agar bagian yang tampak benar-benar di tengah
+                    modifier = if (item.bisaGanti) Modifier.offset(x = 3.dp) else Modifier,
+                ) {
+                    Icon(item.icon, contentDescription = item.label, tint = warna)
+                    if (item.bisaGanti) {
+                        // Penanda bahwa tab ini bisa diketuk lagi untuk memilih beranda
+                        Icon(
+                            Icons.Filled.ArrowDropDown,
+                            contentDescription = null,
+                            tint = warna,
+                            modifier = Modifier
+                                .offset(x = (-3).dp)
+                                .size(18.dp),
+                        )
+                    }
+                }
             }
         }
     }

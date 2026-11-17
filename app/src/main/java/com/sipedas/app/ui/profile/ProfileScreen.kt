@@ -37,6 +37,8 @@ import com.sipedas.app.ui.components.ScreenHeader
 import com.sipedas.app.ui.kalender.KalenderMengajar
 import com.sipedas.app.ui.theme.Green600
 import com.sipedas.app.ui.theme.Orange500
+import com.sipedas.app.ui.util.adalahKaprodi
+import com.sipedas.app.ui.util.semuaPeran
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -92,11 +94,20 @@ fun ProfileScreen(session: Session, onLogout: () -> Unit, onUbahPassword: () -> 
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Lencana(
-                                teks = labelRole(session.role),
-                                latar = MaterialTheme.colorScheme.primaryContainer,
-                                isi = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
+                            session.semuaPeran.forEach { peran ->
+                                Lencana(
+                                    teks = labelRole(peran),
+                                    latar = MaterialTheme.colorScheme.primaryContainer,
+                                    isi = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            }
+                            if (session.adalahKaprodi) {
+                                Lencana(
+                                    teks = "Kaprodi ${session.kaprodiKode}",
+                                    latar = MaterialTheme.colorScheme.tertiaryContainer,
+                                    isi = MaterialTheme.colorScheme.onTertiaryContainer,
+                                )
+                            }
                             if (session.isWaliKelas) {
                                 Lencana(
                                     teks = "Wali kelas",
@@ -173,6 +184,8 @@ private fun labelRole(role: String): String = when (role) {
     "guru_bk" -> "Guru BK"
     "kesiswaan" -> "Waka Kesiswaan"
     "kepala_sekolah" -> "Kepala Sekolah"
+    "waka_kurikulum" -> "Waka Kurikulum"
+    "waka_sdm" -> "Waka SDM"
     "staf" -> "Staf"
     else -> role
 }

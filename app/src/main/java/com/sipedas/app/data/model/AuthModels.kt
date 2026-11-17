@@ -8,12 +8,20 @@ data class LoginRequest(
     @SerializedName("device_name") val deviceName: String? = null,
 )
 
+data class KaprodiJurusanDto(
+    val id: Int,
+    val kode: String,
+    val nama: String,
+)
+
 data class UserDto(
     val id: Int,
     val name: String,
     val username: String,
     val nip: String?,
     val role: String,
+    val roles: List<String>?,
+    @SerializedName("kaprodi_jurusan") val kaprodiJurusan: KaprodiJurusanDto?,
     @SerializedName("is_wali_kelas") val isWaliKelas: Boolean,
 )
 

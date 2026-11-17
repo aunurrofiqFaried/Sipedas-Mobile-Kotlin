@@ -67,6 +67,16 @@ import com.sipedas.app.ui.components.PlaceholderScreen
 import com.sipedas.app.ui.pimpinan.PimpinanScreen
 import com.sipedas.app.ui.pimpinan.KepatuhanScreen
 import com.sipedas.app.ui.pimpinan.DetailKepatuhanScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.sipedas.app.ui.components.PilihBerandaDialog
+import com.sipedas.app.ui.kaprodi.KaprodiScreen
+import com.sipedas.app.ui.util.Beranda
+import com.sipedas.app.ui.util.adalahPimpinan
+import com.sipedas.app.ui.util.berandaAwal
+import com.sipedas.app.ui.util.daftarBeranda
+import com.sipedas.app.ui.util.punyaPeran
 
 object Routes {
     // Satu tujuan navigasi yang berisi kelima tab (digeser dengan pager)
@@ -94,12 +104,10 @@ object Routes {
     const val POIN_REMISI = "poin/remisi/{siswaId}"
     // Khusus pimpinan
     const val PIMPINAN = "pimpinan"
+    const val KAPRODI = "kaprodi"
     const val KEPATUHAN = "pimpinan/kepatuhan"
     const val KEPATUHAN_GURU = "pimpinan/kepatuhan/{guruId}?dari={dari}&sampai={sampai}"
 }
-
-// Peran yang melihat tab Pimpinan menggantikan Beranda
-private val PERAN_PIMPINAN = setOf("kepala_sekolah", "waka_kurikulum", "kesiswaan", "waka_sdm", "admin")
 
 private val tabGuru = listOf(
     TabItem(Routes.HOME, "Beranda", Icons.Filled.Home),
@@ -109,12 +117,15 @@ private val tabGuru = listOf(
     TabItem(Routes.PROFIL, "Profil", Icons.Filled.Person),
 )
 
-private fun tabUntuk(role: String): List<TabItem> =
-    if (role in PERAN_PIMPINAN) {
-        listOf(TabItem(Routes.PIMPINAN, "Pimpinan", Icons.Filled.Dashboard)) + tabGuru.drop(1)
-    } else {
-        tabGuru
+private fun tabUntuk(beranda: Beranda, bisaGanti: Boolean): List<TabItem> {
+    val route = when (beranda) {
+        Beranda.GURU -> Routes.HOME
+        Beranda.PIMPINAN -> Routes.PIMPINAN
+        Beranda.KAPRODI -> Routes.KAPRODI
     }
+
+    return listOf(TabItem(route, beranda.labelTab, beranda.ikon, bisaGanti)) + tabGuru.drop(1)
+}
 
 // Durasi singkat dan tegas supaya terasa seperti geser, bukan melayang
 private val geser = tween<IntOffset>(durationMillis = 250, easing = FastOutSlowInEasing)
@@ -124,8 +135,11 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
     val nav = rememberNavController()
     val backStack by nav.currentBackStackEntryAsState()
     val rute = backStack?.destination?.route
-
-    val tabs = remember(session.role) { tabUntuk(session.role) }
+    val daftarBeranda = remember(session.token, session.roles, session.kaprodiKode) { session.daftarBeranda() }
+    var berandaDipilih by rememberSaveable(session.token) { mutableStateOf(session.berandaAwal().name) }
+    val beranda = daftarBeranda.firstOrNull { it.name == berandaDipilih } ?: daftarBeranda.first()
+    var tampilPilihBeranda by remember { mutableStateOf(false) }
+    val tabs = remember(beranda, daftarBeranda.size) { tabUntuk(beranda, daftarBeranda.size > 1) }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
     // Satu ViewModel pengumuman per sesi login
@@ -156,7 +170,7 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
     }
 
     // Hanya BK, waka kesiswaan, dan admin yang boleh menghubungi wali (server juga menolak role lain)
-    val bolehHubungiWali = session.role in setOf("guru_bk", "kesiswaan", "admin")
+    val bolehHubungiWali = session.punyaPeran("guru_bk", "kesiswaan", "admin")
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -172,7 +186,14 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                     GlassBottomBar(
                         items = tabs,
                         selectedRoute = tabs[pagerState.currentPage].route,
-                        onSelect = pindahTab,
+                        onSelect = { route ->
+                            // Mengetuk Beranda saat sudah di sana membuka pilihan beranda
+                            if (route == tabs[0].route && pagerState.currentPage == 0 && daftarBeranda.size > 1) {
+                                tampilPilihBeranda = true
+                            } else {
+                                pindahTab(route)
+                            }
+                        },
                     )
                 }
             },
@@ -222,6 +243,13 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
                             )
 
                             Routes.PIMPINAN -> PimpinanScreen(
+                                session = session,
+                                belumDibaca = pengumuman.belumDibaca,
+                                onBukaPengumuman = pengumuman::bukaPanel,
+                                onBukaKepatuhan = { nav.navigate(Routes.KEPATUHAN) },
+                            )
+
+                            Routes.KAPRODI -> KaprodiScreen(
                                 session = session,
                                 belumDibaca = pengumuman.belumDibaca,
                                 onBukaPengumuman = pengumuman::bukaPanel,
@@ -413,7 +441,19 @@ fun AppNavHost(session: Session, onLogout: () -> Unit) {
             }
 
             // Panel dari kanan, di atas semuanya termasuk menu bawah
-            PanelPengumuman(pengumuman, bolehKelola = session.role in PERAN_PIMPINAN)
+            PanelPengumuman(pengumuman, bolehKelola = session.adalahPimpinan)
+
+            if (tampilPilihBeranda) {
+                PilihBerandaDialog(
+                    pilihan = daftarBeranda,
+                    aktif = beranda,
+                    onPilih = {
+                        berandaDipilih = it.name
+                        tampilPilihBeranda = false
+                    },
+                    onTutup = { tampilPilihBeranda = false },
+                )
+            }
             // Notifikasi dalam aplikasi: paling atas, di atas semua layar
             NotifikasiHost(modifier = Modifier.align(Alignment.TopCenter))
         }
